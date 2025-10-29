@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.1",
+    "@mui/x-data-grid": "^8.10.2",
+    "compression": "^1.8.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "fabric": "^4.6.0",
+    "helmet": "^8.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
+    "papaparse": "^5.5.3",
+    "react-icons": "^5.5.0",
+    "recharts": "^3.1.2"
+  }
+}

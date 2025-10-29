@@ -1,0 +1,11 @@
+name,school,department,semester,academicYear,capacity,isActive
+CS-A,School of Engineering,Computer Science Engineering,Fall,2024-2025,60,true
+CS-B,School of Engineering,Computer Science Engineering,Fall,2024-2025,60,true
+CS-C,School of Engineering,Computer Science Engineering,Fall,2024-2025,60,true
+EC-A,School of Engineering,Electronics Engineering,Fall,2024-2025,50,true
+EC-B,School of Engineering,Electronics Engineering,Fall,2024-2025,50,true
+MBA-1,School of Management,Management Studies,Fall,2024-2025,40,true
+MBA-2,School of Management,Management Studies,Spring,2024-2025,40,true
+MBA-3,School of Management,Management Studies,Summer,2024-2025,30,true
+CS-D,School of Engineering,Computer Science Engineering,Spring,2024-2025,60,true
+EC-C,School of Engineering,Electronics Engineering,Spring,2024-2025,50,true

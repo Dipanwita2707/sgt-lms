@@ -1,0 +1,11 @@
+name,email,password,section,school,department,regNo,phoneNumber,dateOfBirth,gender,address,guardianName,guardianPhone
+Aarav Sharma,aarav.sharma@student.sgt.edu,Student@123,CS-A,School of Engineering,Computer Science Engineering,2024CS001,+91-9876543210,2005-03-15,Male,"New Delhi, India",Mr. Rajesh Sharma,+91-9876543200
+Diya Patel,diya.patel@student.sgt.edu,Student@123,CS-A,School of Engineering,Computer Science Engineering,2024CS002,+91-9876543211,2005-07-22,Female,"Mumbai, India",Mr. Amit Patel,+91-9876543201
+Ishaan Gupta,ishaan.gupta@student.sgt.edu,Student@123,CS-B,School of Engineering,Computer Science Engineering,2024CS003,+91-9876543212,2005-01-10,Male,"Bangalore, India",Mrs. Priya Gupta,+91-9876543202
+Ananya Singh,ananya.singh@student.sgt.edu,Student@123,EC-A,School of Engineering,Electronics Engineering,2024EC001,+91-9876543213,2005-09-18,Female,"Pune, India",Mr. Vikram Singh,+91-9876543203
+Rohan Verma,rohan.verma@student.sgt.edu,Student@123,MBA-1,School of Management,Management Studies,2024MBA001,+91-9876543214,2004-12-05,Male,"Chennai, India",Mrs. Sunita Verma,+91-9876543204
+Priya Reddy,priya.reddy@student.sgt.edu,Student@123,CS-A,School of Engineering,Computer Science Engineering,2024CS004,+91-9876543215,2005-05-20,Female,"Hyderabad, India",Mr. Suresh Reddy,+91-9876543205
+Kabir Malhotra,kabir.malhotra@student.sgt.edu,Student@123,CS-B,School of Engineering,Computer Science Engineering,2024CS005,+91-9876543216,2005-11-08,Male,"Jaipur, India",Mrs. Neha Malhotra,+91-9876543206
+Sanya Kapoor,sanya.kapoor@student.sgt.edu,Student@123,EC-A,School of Engineering,Electronics Engineering,2024EC002,+91-9876543217,2005-04-12,Female,"Kolkata, India",Mr. Anil Kapoor,+91-9876543207
+Arjun Nair,arjun.nair@student.sgt.edu,Student@123,MBA-1,School of Management,Management Studies,2024MBA002,+91-9876543218,2004-08-30,Male,"Kochi, India",Mrs. Lakshmi Nair,+91-9876543208
+Meera Iyer,meera.iyer@student.sgt.edu,Student@123,CS-C,School of Engineering,Computer Science Engineering,2024CS006,+91-9876543219,2005-06-25,Female,"Coimbatore, India",Mr. Venkat Iyer,+91-9876543209

@@ -1,0 +1,53 @@
+{
+  "name": "sgt-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:https": "node server-https.js",
+    "start:cluster": "node cluster.js",
+    "start:production": "set NODE_ENV=production && node server-production.js",
+    "start:scalable": "set NODE_ENV=production && set USE_REDIS=false && node cluster.js",
+    "dev": "nodemon server.js",
+    "dev:https": "nodemon server-https.js",
+    "test": "jest",
+    "redis:start": "redis-server",
+    "redis:test": "redis-cli ping"
+  },
+  "dependencies": {
+    "@mui/x-date-pickers": "^8.11.3",
+    "axios": "^1.12.2",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.0.1",
+    "form-data": "^4.0.4",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.3.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "jsonwebtoken": "^9.0.0",
+    "mediasoup": "^3.12.16",
+    "mongoose": "^8.0.0",
+    "multer": "^1.4.4",
+    "nodemailer": "^6.9.0",
+    "papaparse": "^5.5.3",
+    "pdfkit": "^0.17.2",
+    "pg": "^8.11.3",
+    "qrcode": "^1.5.4",
+    "rate-limiter-flexible": "^8.0.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "socket.io-redis": "^6.1.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^3.0.0",
+    "supertest": "^6.3.3"
+  }
+}

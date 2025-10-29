@@ -1,0 +1,11 @@
+title,description,courseCode,credits,department
+Data Structures and Algorithms,Advanced data structures and algorithm design,CS101,4,Computer Science Engineering
+Database Management Systems,Relational database design and SQL,CS102,4,Computer Science Engineering
+Web Development,Full-stack web development with MERN,CS103,3,Computer Science Engineering
+Operating Systems,Process management and system calls,CS104,4,Computer Science Engineering
+Computer Networks,Network protocols and architectures,CS105,4,Computer Science Engineering
+Software Engineering,Software development lifecycle and methodologies,SE101,3,Computer Science Engineering
+Microprocessors and Microcontrollers,8086 architecture and assembly programming,EC201,4,Electronics Engineering
+Digital Signal Processing,Discrete-time signals and systems,EC202,4,Electronics Engineering
+Financial Management,Corporate finance and investment analysis,MBA101,3,MBA
+Marketing Management,Market research and strategy,MBA102,3,MBA

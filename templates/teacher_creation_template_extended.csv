@@ -1,0 +1,11 @@
+name,email,password,school,department,teacherId,phoneNumber,qualification,specialization,experience,employeeId,designation
+Dr. Rajesh Kumar,rajesh.kumar@sgt.edu,Rajesh@2024,School of Engineering,Computer Science Engineering,,+91-9876543210,Ph.D.,Data Structures and Algorithms,10,EMP001,Associate Professor
+Prof. Priya Sharma,priya.sharma@sgt.edu,Priya@2024,School of Engineering,Electronics Engineering,,+91-9876543211,M.Tech.,VLSI Design,8,EMP002,Assistant Professor
+Dr. Amit Verma,amit.verma@sgt.edu,Amit@2024,School of Engineering,Computer Science Engineering,,+91-9876543212,Ph.D.,Machine Learning,12,EMP003,Professor
+Prof. Sunita Reddy,sunita.reddy@sgt.edu,Sunita@2024,School of Management,Management Studies,,+91-9876543213,MBA,Marketing Strategy,15,EMP004,Associate Professor
+Dr. Vikram Joshi,vikram.joshi@sgt.edu,Vikram@2024,School of Engineering,Computer Science Engineering,,+91-9876543214,Ph.D.,Database Systems,9,EMP005,Assistant Professor
+Prof. Neha Gupta,neha.gupta@sgt.edu,Neha@2024,School of Engineering,Electronics Engineering,,+91-9876543215,M.Tech.,Embedded Systems,7,EMP006,Assistant Professor
+Dr. Arun Patel,arun.patel@sgt.edu,Arun@2024,School of Management,Management Studies,,+91-9876543216,Ph.D.,Financial Management,11,EMP007,Professor
+Prof. Kavita Singh,kavita.singh@sgt.edu,Kavita@2024,School of Engineering,Computer Science Engineering,,+91-9876543217,M.Tech.,Software Engineering,6,EMP008,Assistant Professor
+Dr. Suresh Nair,suresh.nair@sgt.edu,Suresh@2024,School of Engineering,Electronics Engineering,,+91-9876543218,Ph.D.,Signal Processing,13,EMP009,Associate Professor
+Prof. Lakshmi Iyer,lakshmi.iyer@sgt.edu,Lakshmi@2024,School of Management,Management Studies,,+91-9876543219,MBA,Human Resource Management,9,EMP010,Assistant Professor

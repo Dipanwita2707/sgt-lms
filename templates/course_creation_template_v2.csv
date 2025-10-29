@@ -1,0 +1,11 @@
+title,description,courseCode,credits,school,department,semester,level,prerequisite,isActive
+Data Structures and Algorithms,Advanced data structures and algorithm design,CS101,4,School of Engineering,Computer Science Engineering,Fall,intermediate,CS100,true
+Database Management Systems,Relational database design and SQL programming,CS102,4,School of Engineering,Computer Science Engineering,Fall,intermediate,CS101,true
+Web Development,Full-stack web development with MERN stack,CS103,3,School of Engineering,Computer Science Engineering,Spring,beginner,,true
+Operating Systems,Process management and system calls,CS104,4,School of Engineering,Computer Science Engineering,Fall,advanced,CS101;CS102,true
+Computer Networks,Network protocols and architectures,CS105,4,School of Engineering,Computer Science Engineering,Spring,intermediate,CS104,true
+Software Engineering,Software development lifecycle and methodologies,SE101,3,School of Engineering,Computer Science Engineering,Fall,beginner,,true
+Digital Electronics,Combinational and sequential circuits,EC201,4,School of Engineering,Electronics Engineering,Fall,beginner,,true
+Microprocessors and Microcontrollers,8086 architecture and assembly programming,EC202,4,School of Engineering,Electronics Engineering,Spring,intermediate,EC201,true
+Marketing Management,Strategic marketing concepts and strategies,MBA101,3,School of Management,Management Studies,Fall,beginner,,true
+Financial Accounting,Basic accounting principles and practices,MBA102,3,School of Management,Management Studies,Fall,beginner,,true

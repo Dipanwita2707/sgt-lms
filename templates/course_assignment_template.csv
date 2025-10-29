@@ -1,0 +1,11 @@
+section,school,department,courses
+A1,School of Engineering,Computer Science Engineering,CS101;CS102;CS103;CS104;CS105
+A2,School of Engineering,Computer Science Engineering,CS101;CS102;CS103;CS104;CS105
+A3,School of Engineering,Computer Science Engineering,CS101;CS102;CS103;CS104;CS105
+B1,School of Engineering,Electronics Engineering,EE101;EE102;EE103;EE104
+B2,School of Engineering,Electronics Engineering,EE101;EE102;EE103;EE104
+C1,School of Management,MBA,MBA101;MBA102;MBA103;MBA104;MBA105
+C2,School of Management,MBA,MBA101;MBA102;MBA103;MBA104;MBA105
+D1,School of Arts,English Literature,ENG101;ENG102;ENG103;ENG104
+D2,School of Arts,English Literature,ENG101;ENG102;ENG103;ENG104
+E1,School of Engineering,Mechanical Engineering,ME101;ME102;ME103;ME104;ME105
