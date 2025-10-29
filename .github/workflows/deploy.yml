@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,3 +23,5 @@ jobs:
             git pull origin main
             cd backend && npm install && pm2 restart sgt-backend
             cd ../frontend && npm install && npm run build && pm2 restart frontend
+
+
