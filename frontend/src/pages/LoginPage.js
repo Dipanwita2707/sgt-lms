@@ -330,7 +330,7 @@ const LoginPage = () => {
               textAlign="center"
               sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}
             >
-              Enter your credentials to access your dashboards
+              Enter your credentials to access your dashboard
             </Typography>
             
             {error && (
