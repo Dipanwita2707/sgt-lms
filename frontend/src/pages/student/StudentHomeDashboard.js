@@ -193,7 +193,7 @@ const StudentHomeDashboard = () => {
   }, [token]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 } }}>
+    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
       <Typography 
         variant="h4" 
         gutterBottom
@@ -203,7 +203,8 @@ const StudentHomeDashboard = () => {
           backgroundClip: 'text',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          mb: 1
+          mb: 1,
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
         }}
       >
         Learning Overview
@@ -211,7 +212,10 @@ const StudentHomeDashboard = () => {
       <Typography 
         variant="subtitle1" 
         color="text.secondary" 
-        sx={{ mb: 3, fontSize: '1.1rem' }}
+        sx={{ 
+          mb: 3, 
+          fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
+        }}
       >
         Welcome back, {currentUser?.name || 'Student'}! Here's your learning progress.
       </Typography>
@@ -225,57 +229,57 @@ const StudentHomeDashboard = () => {
       ) : (
         <>
           {/* Stats Cards */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={6} lg={2.4}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6} md={6} lg={2.4}>
               <StatCard
                 title="Enrolled Courses"
                 count={dashboardData.courseCount}
                 description="active courses"
-                icon={<MenuBookIcon sx={{ color: '#1565c0', fontSize: 28 }} />}
+                icon={<MenuBookIcon sx={{ color: '#1565c0', fontSize: { xs: 24, md: 28 } }} />}
                 gradient="linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)"
                 textColor="#1565c0"
               />
             </Grid>
             
-            <Grid item xs={12} md={6} lg={2.4}>
+            <Grid item xs={12} sm={6} md={6} lg={2.4}>
               <StatCard
                 title="Videos Watched"
                 count={dashboardData.videosWatched}
                 description={`out of ${dashboardData.totalVideos} videos`}
-                icon={<OndemandVideoIcon sx={{ color: '#2e7d32', fontSize: 28 }} />}
+                icon={<OndemandVideoIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, md: 28 } }} />}
                 gradient="linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)"
                 textColor="#2e7d32"
               />
             </Grid>
             
-            <Grid item xs={12} md={6} lg={2.4}>
+            <Grid item xs={12} sm={6} md={6} lg={2.4}>
               <StatCard
                 title="Quizzes"
                 count={dashboardData.quizzesCompleted}
                 description={dashboardData.averageScore > 0 ? `avg: ${dashboardData.averageScore}%` : 'completed'}
-                icon={<QuizIcon sx={{ color: '#f57c00', fontSize: 28 }} />}
+                icon={<QuizIcon sx={{ color: '#f57c00', fontSize: { xs: 24, md: 28 } }} />}
                 gradient="linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)"
                 textColor="#f57c00"
               />
             </Grid>
             
-            <Grid item xs={12} md={6} lg={2.4}>
+            <Grid item xs={12} sm={6} md={6} lg={2.4}>
               <StatCard
                 title="Overall Progress"
                 count={`${dashboardData.overallProgress}%`}
                 description="course completion"
-                icon={<TrendingUpIcon sx={{ color: '#7b1fa2', fontSize: 28 }} />}
+                icon={<TrendingUpIcon sx={{ color: '#7b1fa2', fontSize: { xs: 24, md: 28 } }} />}
                 gradient="linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)"
                 textColor="#7b1fa2"
               />
             </Grid>
 
-            <Grid item xs={12} md={6} lg={2.4}>
+            <Grid item xs={12} sm={12} md={12} lg={2.4}>
               <StatCard
                 title="Academic Status"
                 count={dashboardData.overallProgress >= 75 ? 'Excellent' : dashboardData.overallProgress >= 50 ? 'Good' : 'Needs Work'}
                 description="performance level"
-                icon={<SchoolIcon sx={{ color: '#d32f2f', fontSize: 28 }} />}
+                icon={<SchoolIcon sx={{ color: '#d32f2f', fontSize: { xs: 24, md: 28 } }} />}
                 gradient="linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)"
                 textColor="#d32f2f"
               />
@@ -283,10 +287,10 @@ const StudentHomeDashboard = () => {
           </Grid>
 
           {/* Quick Actions Section */}
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
             <Grid item xs={12} md={6} lg={4}>
               <Card sx={{ 
-                height: '300px',
+                height: { xs: 'auto', md: '300px' },
                 background: '#ffffff',
                 border: '1px solid #6497b1',
                 boxShadow: '0 6px 20px rgba(0, 91, 150, 0.15)',
@@ -300,51 +304,89 @@ const StudentHomeDashboard = () => {
                   avatar={
                     <Avatar sx={{ 
                       bgcolor: '#005b96',
-                      background: 'linear-gradient(135deg, #005b96 0%, #03396c 100%)'
+                      background: 'linear-gradient(135deg, #005b96 0%, #03396c 100%)',
+                      width: { xs: 36, md: 40 },
+                      height: { xs: 36, md: 40 }
                     }}>
-                      <LaunchIcon />
+                      <LaunchIcon sx={{ fontSize: { xs: 18, md: 20 } }} />
                     </Avatar>
                   }
-                  title="Quick Actions"
-                  subheader="Jump to your most used features"
+                  title={
+                    <Typography variant="h6" sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}>
+                      Quick Actions
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
+                      Jump to your most used features
+                    </Typography>
+                  }
+                  sx={{ pb: { xs: 1, md: 2 } }}
                 />
                 <Divider />
                 <CardContent sx={{ p: 0 }}>
-                  <List>
-                    <ListItem button onClick={() => navigate('/student/courses')}>
+                  <List sx={{ py: 0 }}>
+                    <ListItem 
+                      button 
+                      onClick={() => navigate('/student/courses')}
+                      sx={{ py: { xs: 1.5, md: 2 } }}
+                    >
                       <ListItemIcon>
-                        <MenuBookIcon sx={{ color: '#005b96' }} />
+                        <MenuBookIcon sx={{ color: '#005b96', fontSize: { xs: 20, md: 24 } }} />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="My Courses" 
-                        secondary="View and access your enrolled courses"
+                        primary={
+                          <Typography sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}>
+                            My Courses
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                            View and access your enrolled courses
+                          </Typography>
+                        }
                       />
                     </ListItem>
-                    <ListItem button onClick={() => navigate('/student/videos')}>
+                    <ListItem 
+                      button 
+                      onClick={() => navigate('/student/quiz-results')}
+                      sx={{ py: { xs: 1.5, md: 2 } }}
+                    >
                       <ListItemIcon>
-                        <VideoLibraryIcon sx={{ color: '#005b96' }} />
+                        <QuizIcon sx={{ color: '#005b96', fontSize: { xs: 20, md: 24 } }} />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="Recent Videos" 
-                        secondary="Continue watching your videos"
+                        primary={
+                          <Typography sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}>
+                            Quiz Results
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                            Check your quiz performance
+                          </Typography>
+                        }
                       />
                     </ListItem>
-                    <ListItem button onClick={() => navigate('/student/quiz-results')}>
+                    <ListItem 
+                      button 
+                      onClick={() => navigate('/student/live-classes')}
+                      sx={{ py: { xs: 1.5, md: 2 } }}
+                    >
                       <ListItemIcon>
-                        <QuizIcon sx={{ color: '#005b96' }} />
+                        <PlayCircleOutlineIcon sx={{ color: '#005b96', fontSize: { xs: 20, md: 24 } }} />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="Quiz Results" 
-                        secondary="Check your quiz performance"
-                      />
-                    </ListItem>
-                    <ListItem button onClick={() => navigate('/student/live-classes')}>
-                      <ListItemIcon>
-                        <PlayCircleOutlineIcon sx={{ color: '#005b96' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Live Classes" 
-                        secondary="Join scheduled live sessions"
+                        primary={
+                          <Typography sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}>
+                            Live Classes
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                            Join scheduled live sessions
+                          </Typography>
+                        }
                       />
                     </ListItem>
                   </List>

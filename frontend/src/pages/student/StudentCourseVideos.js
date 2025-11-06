@@ -21,7 +21,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  LinearProgress
+  LinearProgress,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -38,6 +40,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import QuizIcon from '@mui/icons-material/Quiz';
 import SchoolIcon from '@mui/icons-material/School';
 import WarningIcon from '@mui/icons-material/Warning';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 // Function to check if a video is locked (for non-unit based videos)
 const isVideoLocked = (index, videos) => {
@@ -86,6 +91,13 @@ const StudentCourseVideos = () => {
   const [unitQuizStatus, setUnitQuizStatus] = useState({}); // unitId -> { quizCompleted, quizPassed }
   const [deadlineWarnings, setDeadlineWarnings] = useState([]);
   const [deadlineLoading, setDeadlineLoading] = useState(true);
+  
+  // Sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
   
   useEffect(() => {
     const fetchCourseAndVideos = async () => {
@@ -669,22 +681,53 @@ const StudentCourseVideos = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      {/* Left Sidebar - Video/Unit List (Coursera-style) */}
+      {/* Left Sidebar - Video/Unit List (Coursera-style with collapse) */}
       <Box
         sx={{
-          width: { xs: '100%', md: '380px' },
+          width: { 
+            xs: '100%', 
+            md: sidebarCollapsed ? '60px' : '380px' 
+          },
           flexShrink: 0,
           backgroundColor: 'white',
           borderRight: { md: '1px solid #e0e0e0' },
           height: { md: '100vh' },
           overflowY: 'auto',
+          overflowX: 'hidden',
           position: { md: 'sticky' },
           top: 0,
-          zIndex: 10
+          zIndex: 10,
+          transition: 'width 0.3s ease-in-out'
         }}
       >
+        {/* Toggle Button */}
+        <Box sx={{ 
+          display: { xs: 'none', md: 'flex' }, 
+          justifyContent: sidebarCollapsed ? 'center' : 'flex-end', 
+          p: 1,
+          borderBottom: '1px solid #e0e0e0'
+        }}>
+          <Tooltip title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right">
+            <IconButton 
+              onClick={toggleSidebar}
+              size="small"
+              sx={{ 
+                bgcolor: 'primary.light',
+                '&:hover': { bgcolor: 'primary.main', color: 'white' }
+              }}
+            >
+              {sidebarCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
+        
         {/* Course Header in Sidebar */}
-        <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+        <Box sx={{ 
+          p: { xs: 2, sm: 3 }, 
+          borderBottom: '1px solid #e0e0e0', 
+          backgroundColor: '#fafafa',
+          display: sidebarCollapsed ? 'none' : 'block'
+        }}>
           <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2, fontSize: '0.75rem' }}>
             <Link component={RouterLink} to="/student" color="inherit">
               Dashboard
@@ -707,7 +750,7 @@ const StudentCourseVideos = () => {
         </Box>
 
         {/* Deadline Warnings in Sidebar */}
-        {!deadlineLoading && deadlineWarnings && deadlineWarnings.length > 0 && (
+        {!sidebarCollapsed && !deadlineLoading && deadlineWarnings && deadlineWarnings.length > 0 && (
           <Alert 
             severity={deadlineWarnings.some(w => w.isExpired) ? "error" : "warning"} 
             sx={{ m: 2, fontSize: '0.75rem' }}
@@ -719,8 +762,31 @@ const StudentCourseVideos = () => {
           </Alert>
         )}
 
-        {/* Video/Unit List */}
-        <Box sx={{ pb: 4 }}>
+        {/* Collapsed View - Show only icons */}
+        {sidebarCollapsed && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 2 }}>
+            <Tooltip title="Course Videos" placement="right">
+              <IconButton color="primary">
+                <PlayCircleOutlineIcon />
+              </IconButton>
+            </Tooltip>
+            <Divider sx={{ width: '80%' }} />
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                writingMode: 'vertical-rl', 
+                textOrientation: 'mixed',
+                fontSize: '0.7rem',
+                color: 'text.secondary'
+              }}
+            >
+              {hasUnits ? `${units.length} Weeks` : `${videos.length} Videos`}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Video/Unit List - Hidden when collapsed */}
+        <Box sx={{ pb: 4, display: sidebarCollapsed ? 'none' : 'block' }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
               <CircularProgress size={40} />
@@ -883,8 +949,12 @@ const StudentCourseVideos = () => {
       <Box
         sx={{
           flexGrow: 1,
-          width: { xs: '100%', md: 'calc(100% - 380px)' },
-          overflowY: 'auto'
+          width: { 
+            xs: '100%', 
+            md: sidebarCollapsed ? 'calc(100% - 60px)' : 'calc(100% - 380px)' 
+          },
+          overflowY: 'auto',
+          transition: 'width 0.3s ease-in-out'
         }}
       >
       {loading ? (

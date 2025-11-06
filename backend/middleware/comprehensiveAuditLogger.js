@@ -685,29 +685,107 @@ const getSeverity = (method, statusCode, url) => {
 };
 
 /**
- * Determine category
+ * Determine category - COMPREHENSIVE mapping for ALL LMS features
  */
 const getCategory = (url) => {
   const urlLower = url.toLowerCase();
   
+  // Authentication & Session Management
+  if (urlLower.includes('/auth/login') || urlLower.includes('/auth/register')) return 'authentication';
+  if (urlLower.includes('/auth/logout')) return 'session_management';
   if (urlLower.includes('/auth')) return 'authentication';
+  if (urlLower.includes('/session')) return 'session_management';
+  
+  // User Management by Role
+  if (urlLower.includes('/student') && urlLower.includes('/analytics')) return 'student_analytics';
   if (urlLower.includes('/student')) return 'student_management';
+  if (urlLower.includes('/teacher-request')) return 'teacher_requests';
+  if (urlLower.includes('/teacher') && urlLower.includes('/analytics')) return 'teacher_analytics';
+  if (urlLower.includes('/teacher-assignment')) return 'teacher_management';
   if (urlLower.includes('/teacher')) return 'teacher_management';
-  if (urlLower.includes('/course')) return 'course_management';
+  if (urlLower.includes('/role')) return 'role_management';
+  if (urlLower.includes('/permission')) return 'permission_management';
+  if (urlLower.includes('/user')) return 'user_management';
+  
+  // Academic Structure & Organization
+  if (urlLower.includes('/school')) return 'school_management';
+  if (urlLower.includes('/department')) return 'department_management';
+  if (urlLower.includes('/course') && !urlLower.includes('/section')) return 'course_management';
+  if (urlLower.includes('/section') && urlLower.includes('/analytics')) return 'section_analytics';
+  if (urlLower.includes('/section')) return 'section_management';
+  if (urlLower.includes('/unit')) return 'unit_management';
+  if (urlLower.includes('/hierarchy')) return 'hierarchy_management';
+  
+  // Content Management
+  if (urlLower.includes('/video-unlock')) return 'video_unlock';
+  if (urlLower.includes('/video')) return 'video_management';
+  if (urlLower.includes('/reading-material')) return 'reading_materials';
+  if (urlLower.includes('/resource')) return 'resource_management';
+  if (urlLower.includes('/upload')) return 'file_management';
+  if (urlLower.includes('/content')) return 'content_management';
+  
+  // Assessment & Evaluation
+  if (urlLower.includes('/quiz-unlock')) return 'quiz_unlock';
+  if (urlLower.includes('/quiz-pool')) return 'quiz_pool_management';
+  if (urlLower.includes('/quiz') && urlLower.includes('/security')) return 'quiz_security';
+  if (urlLower.includes('/quiz-configuration')) return 'quiz_management';
   if (urlLower.includes('/quiz')) return 'assessment';
-  if (urlLower.includes('/assignment')) return 'assessment';
-  if (urlLower.includes('/video')) return 'content_management';
+  if (urlLower.includes('/assignment')) return 'assignment_management';
+  if (urlLower.includes('/grade') || urlLower.includes('/grading')) return 'grading';
+  if (urlLower.includes('/exam')) return 'assessment';
+  
+  // Communication
+  if (urlLower.includes('/announcement')) return 'announcement';
+  if (urlLower.includes('/notification')) return 'notification';
+  if (urlLower.includes('/group-chat')) return 'group_chat';
+  if (urlLower.includes('/chat')) return 'chat';
+  if (urlLower.includes('/message')) return 'messaging';
+  if (urlLower.includes('/communication')) return 'communication';
+  
+  // Analytics & Reporting
+  if (urlLower.includes('/dean') && urlLower.includes('/analytics')) return 'dean_analytics';
+  if (urlLower.includes('/hod') && urlLower.includes('/analytics')) return 'hod_analytics';
+  if (urlLower.includes('/course') && urlLower.includes('/analytics')) return 'course_analytics';
+  if (urlLower.includes('/performance')) return 'performance_tracking';
   if (urlLower.includes('/analytics')) return 'analytics';
+  if (urlLower.includes('/report')) return 'analytics';
+  
+  // Administrative Operations
+  if (urlLower.includes('/dean')) return 'dean_operations';
+  if (urlLower.includes('/hod')) return 'hod_operations';
+  if (urlLower.includes('/cc')) return 'cc_operations';
+  if (urlLower.includes('/admin') && urlLower.includes('/audit')) return 'administration';
+  if (urlLower.includes('/admin')) return 'administration';
+  if (urlLower.includes('/approval')) return 'approval_workflow';
+  
+  // Certification & Progress
+  if (urlLower.includes('/certificate')) return 'certification';
+  if (urlLower.includes('/progress')) return 'progress_tracking';
+  
+  // Live Sessions
+  if (urlLower.includes('/live-class')) return 'live_class';
+  if (urlLower.includes('/live-session')) return 'live_session';
+  if (urlLower.includes('/virtual-classroom')) return 'virtual_classroom';
+  
+  // Data Operations
+  if (urlLower.includes('/bulk-upload')) return 'csv_upload';
+  if (urlLower.includes('/bulk-assign')) return 'bulk_assignment';
   if (urlLower.includes('/bulk')) return 'bulk_operations';
   if (urlLower.includes('/export')) return 'data_export';
-  if (urlLower.includes('/certificate')) return 'certification';
-  if (urlLower.includes('/announcement')) return 'communication';
-  if (urlLower.includes('/chat') || urlLower.includes('/message')) return 'communication';
-  if (urlLower.includes('/live-class')) return 'live_session';
-  if (urlLower.includes('/admin')) return 'administration';
-  if (urlLower.includes('/dean')) return 'administration';
-  if (urlLower.includes('/hod')) return 'administration';
-  if (urlLower.includes('/school') || urlLower.includes('/department')) return 'organization';
+  if (urlLower.includes('/import')) return 'data_import';
+  if (urlLower.includes('/csv')) return 'csv_upload';
+  
+  // Security & Monitoring
+  if (urlLower.includes('/security')) return 'security';
+  if (urlLower.includes('/access-control')) return 'access_control';
+  if (urlLower.includes('/suspicious')) return 'suspicious_activity';
+  if (urlLower.includes('/integrity')) return 'integrity_monitoring';
+  
+  // System Operations
+  if (urlLower.includes('/setting')) return 'settings';
+  if (urlLower.includes('/config')) return 'configuration';
+  if (urlLower.includes('/maintenance')) return 'maintenance';
+  if (urlLower.includes('/system')) return 'system';
   
   return 'other';
 };
@@ -766,6 +844,14 @@ const comprehensiveAuditLogger = async (req, res, next) => {
       const status = statusCode >= 200 && statusCode < 300 ? 'success' :
                      statusCode >= 400 && statusCode < 500 ? 'failure' : 'error';
       
+      // Debug logging for session tracking
+      console.log('📝 Audit Log:', {
+        action: `${req.method}_${getEntityType(req.originalUrl) || 'API'}`,
+        user: req.user.name,
+        sessionId: req.user.sessionId || 'NO_SESSION_ID',
+        url: req.originalUrl
+      });
+      
       // Create comprehensive audit log
       const logData = {
         // User Information
@@ -773,6 +859,9 @@ const comprehensiveAuditLogger = async (req, res, next) => {
         performedByRole: req.user.role || req.user.roles?.[0] || 'unknown',
         performedByName: req.user.name,
         performedByEmail: req.user.email,
+        
+        // Session Information - links all activities to login session
+        sessionId: req.user.sessionId || null,
         
         // Request Information
         action: `${req.method}_${getEntityType(req.originalUrl) || 'API'}`,

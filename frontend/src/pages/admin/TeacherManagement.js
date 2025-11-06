@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Paper, Typography, Snackbar, Alert, CircularProgress } from '@mui/material';
 import { getTeachers, addTeacher, bulkUploadTeachers, resetTeacherPassword, deactivateTeacher } from '../../api/teacherApi';
-import { TeacherPerformance, ExportAnalyticsButtons } from '../../components/admin/AnalyticsWidgets';
+import { TeacherPerformance } from '../../components/admin/AnalyticsWidgets';
 import AddTeacherForm from '../../components/admin/AddTeacherForm';
 import BulkUploadTeachers from '../../components/admin/BulkUploadTeachers';
 import TeacherTable from '../../components/admin/TeacherTable';
@@ -115,7 +115,6 @@ const TeacherManagement = ({ currentUser }) => {
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h6" mb={2}>Manage Teachers</Typography>
-      <ExportAnalyticsButtons />
       <AddTeacherForm onAdd={handleAddTeacher} />
       <BulkUploadTeachers onUpload={handleBulkUpload} />
       {loading ? <CircularProgress /> :

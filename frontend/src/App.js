@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, Suspense, lazy } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState, Suspense, lazy } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -9,6 +9,7 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 import VerifyCertificate from './pages/public/VerifyCertificate';
 import PrivateRoute from './components/PrivateRoute';
 import RoleBasedRedirect from './components/RoleBasedRedirect';
+import SessionTimeoutWarning from './components/SessionTimeoutWarning';
 import { restoreUserFromToken } from './utils/authService';
 import { UserRoleProvider } from './contexts/UserRoleContext';
 
@@ -45,17 +46,96 @@ const theme = createTheme({
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const timerRef = useRef();
+  const warningTimerRef = useRef();
+  const countdownIntervalRef = useRef();
+  
+  const [showWarning, setShowWarning] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+  
   const INACTIVITY_LIMIT = 300000; // 5 minutes in ms
+  const WARNING_TIME = 240000; // 4 minutes in ms (show warning 1 minute before logout)
+
+  // Check if user is on a protected page (video watching or quiz)
+  const isOnProtectedPage = () => {
+    const path = location.pathname;
+    const isWatchingVideo = path.includes('/video/') || path.includes('/watch/');
+    const isTakingQuiz = path.includes('/quiz/') || path.includes('/secure-quiz/') || path.includes('/attempt/');
+    return isWatchingVideo || isTakingQuiz;
+  };
+
+  // Clear all timers
+  const clearAllTimers = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+  };
+
+  // Handle session expiry
+  const handleSessionExpiry = () => {
+    clearAllTimers();
+    setShowWarning(false);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('activeRole');
+    navigate('/login');
+  };
+
+  // Extend session when user clicks "Stay Logged In"
+  const handleExtendSession = () => {
+    console.log('🔄 Session extended by user');
+    setShowWarning(false);
+    clearAllTimers();
+    resetTimer(); // Restart the full 5-minute timer
+  };
+
+  // Show warning dialog
+  const showWarningDialog = () => {
+    // Don't show warning if on protected pages
+    if (isOnProtectedPage()) {
+      console.log('⏯️ Skipping session timeout - user is watching video or taking quiz');
+      resetTimer(); // Just reset the timer silently
+      return;
+    }
+
+    console.log('⚠️ Showing session timeout warning');
+    setShowWarning(true);
+    setCountdown(60);
+
+    // Start countdown
+    let remainingSeconds = 60;
+    countdownIntervalRef.current = setInterval(() => {
+      remainingSeconds--;
+      setCountdown(remainingSeconds);
+      
+      if (remainingSeconds <= 0) {
+        clearInterval(countdownIntervalRef.current);
+        handleSessionExpiry();
+      }
+    }, 1000);
+  };
 
   // Reset inactivity timer
   const resetTimer = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    // Don't apply session timeout on protected pages
+    if (isOnProtectedPage()) {
+      return;
+    }
+
+    clearAllTimers();
+    setShowWarning(false);
+
+    // Set warning timer (4 minutes)
+    warningTimerRef.current = setTimeout(() => {
+      showWarningDialog();
+    }, WARNING_TIME);
+
+    // Set logout timer (5 minutes - backup in case warning is dismissed)
     timerRef.current = setTimeout(() => {
-      // Clear session (localStorage, etc.)
-      localStorage.removeItem('token');
-      // You may want to clear other session data here
-      navigate('/login');
+      if (!showWarning) {
+        handleSessionExpiry();
+      }
     }, INACTIVITY_LIMIT);
   };
 
@@ -63,14 +143,20 @@ function App() {
     restoreUserFromToken();
     
     // List of events to consider as activity
-    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
     events.forEach(event => window.addEventListener(event, resetTimer));
     resetTimer(); // Start timer on mount
+    
     return () => {
       events.forEach(event => window.removeEventListener(event, resetTimer));
-      if (timerRef.current) clearTimeout(timerRef.current);
+      clearAllTimers();
     };
   }, []);
+
+  // Reset timer when location changes (navigating counts as activity)
+  useEffect(() => {
+    resetTimer();
+  }, [location.pathname]);
 
   return (
     <UserRoleProvider>
@@ -168,6 +254,11 @@ function App() {
         <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
     </Suspense>
+      <SessionTimeoutWarning 
+        open={showWarning} 
+        onExtendSession={handleExtendSession} 
+        countdown={countdown} 
+      />
       </ThemeProvider>
     </UserRoleProvider>
   );

@@ -20,7 +20,11 @@ const EditStudentDialog = ({ open, onClose, student, onSubmit }) => {
     if (!form.name.trim()) return 'Name is required';
     if (!form.email.trim()) return 'Email is required';
     if (!emailRegex.test(form.email)) return 'Invalid email address';
-    if (!form.regNo.trim()) return 'Reg No is required';
+    if (!form.regNo.trim()) return 'Registration number is required';
+    // Validate new numeric format (8+ digits)
+    if (!/^\d{8,}$/.test(form.regNo) && !/^S\d{6}$/.test(form.regNo)) {
+      return 'Registration number should be 8 or more digits (e.g., 00000001) or legacy format (S followed by 6 digits)';
+    }
     return '';
   };
 
@@ -61,7 +65,7 @@ const EditStudentDialog = ({ open, onClose, student, onSubmit }) => {
           inputProps={{ title: 'Enter a valid email address' }}
         />
         <TextField
-          label="Reg No"
+          label="Registration Number"
           name="regNo"
           value={form.regNo}
           onChange={handleChange}
@@ -69,8 +73,16 @@ const EditStudentDialog = ({ open, onClose, student, onSubmit }) => {
           margin="normal"
           required
           error={!!touched.regNo && !form.regNo.trim()}
-          helperText={touched.regNo && !form.regNo.trim() ? 'Reg No is required' : ''}
-          inputProps={{ title: 'Enter the registration number' }}
+          helperText={
+            touched.regNo && !form.regNo.trim() 
+              ? 'Registration number is required' 
+              : 'New format: 8+ digits (e.g., 00000001). Legacy format (S123456) is also supported.'
+          }
+          inputProps={{ 
+            title: 'Enter the registration number (8+ digits)',
+            pattern: "[0-9]*",
+            inputMode: "numeric"
+          }}
         />
       </DialogContent>
       <DialogActions>

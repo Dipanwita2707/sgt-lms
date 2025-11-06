@@ -327,6 +327,167 @@ exports.getUserActivityHistory = async (req, res) => {
   }
 };
 
+// Get user sessions with all activities grouped by sessionId
+exports.getUserSessions = async (req, res) => {
+  try {
+    const { userId, limit = 50, page = 1 } = req.query;
+    
+    const AuditLog = require('../models/AuditLog');
+    
+    // Build query
+    const query = { sessionId: { $ne: null, $exists: true } };
+    if (userId) {
+      query.performedBy = userId;
+    }
+    
+    // Get all unique session IDs with pagination
+    const sessions = await AuditLog.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$sessionId',
+          userId: { $first: '$performedBy' },
+          userName: { $first: '$performedByName' },
+          userEmail: { $first: '$performedByEmail' },
+          userRole: { $first: '$performedByRole' },
+          loginTime: { $min: '$timestamp' },
+          lastActivity: { $max: '$timestamp' },
+          activityCount: { $sum: 1 },
+          ipAddress: { $first: '$ipAddress' },
+          browser: { $first: '$deviceInfo.browser' },
+          os: { $first: '$deviceInfo.os' },
+          device: { $first: '$deviceInfo.device' }
+        }
+      },
+      { $sort: { loginTime: -1 } },
+      { $skip: (parseInt(page) - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) }
+    ]);
+    
+    // Get total count for pagination
+    const totalCount = await AuditLog.distinct('sessionId', query).then(ids => ids.length);
+    
+    // Calculate session duration and format response
+    const sessionsWithDetails = sessions.map(session => {
+      const duration = session.lastActivity - session.loginTime;
+      const durationMinutes = Math.floor(duration / 1000 / 60);
+      const durationSeconds = Math.floor((duration / 1000) % 60);
+      
+      // Check if session has logout event
+      const hasLogout = false; // Will be populated below
+      
+      return {
+        sessionId: session._id,
+        userId: session.userId,
+        userName: session.userName,
+        userEmail: session.userEmail,
+        userRole: session.userRole,
+        loginTime: session.loginTime,
+        lastActivity: session.lastActivity,
+        duration: `${durationMinutes}m ${durationSeconds}s`,
+        durationMs: duration,
+        activityCount: session.activityCount,
+        ipAddress: session.ipAddress,
+        browser: session.browser || 'Unknown',
+        os: session.os || 'Unknown',
+        device: session.device || 'Desktop',
+        isActive: (Date.now() - session.lastActivity.getTime()) < 300000, // Active if last activity < 5 min ago
+        hasLogout: hasLogout
+      };
+    });
+    
+    // Check which sessions have logout events
+    for (const session of sessionsWithDetails) {
+      const logoutEvent = await AuditLog.findOne({
+        sessionId: session.sessionId,
+        action: 'USER_LOGOUT'
+      });
+      session.hasLogout = !!logoutEvent;
+    }
+    
+    res.json({
+      sessions: sessionsWithDetails,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalCount,
+        totalPages: Math.ceil(totalCount / parseInt(limit))
+      }
+    });
+    
+  } catch (err) {
+    console.error('Error fetching user sessions:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get all activities for a specific session
+exports.getSessionActivities = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    const AuditLog = require('../models/AuditLog');
+    
+    const activities = await AuditLog.find({ sessionId })
+      .populate('targetUser', 'name email role')
+      .sort({ timestamp: 1 });
+    
+    if (!activities || activities.length === 0) {
+      return res.status(404).json({ message: 'Session not found or no activities recorded' });
+    }
+    
+    // Calculate session metadata
+    const sessionStart = activities[0].timestamp;
+    const sessionEnd = activities[activities.length - 1].timestamp;
+    const duration = sessionEnd - sessionStart;
+    const durationMinutes = Math.floor(duration / 1000 / 60);
+    const durationSeconds = Math.floor((duration / 1000) % 60);
+    
+    const hasLogout = activities.some(a => a.action === 'USER_LOGOUT');
+    
+    res.json({
+      sessionInfo: {
+        sessionId,
+        userName: activities[0].performedByName,
+        userEmail: activities[0].performedByEmail,
+        userRole: activities[0].performedByRole,
+        loginTime: sessionStart,
+        lastActivity: sessionEnd,
+        duration: `${durationMinutes}m ${durationSeconds}s`,
+        durationMs: duration,
+        activityCount: activities.length,
+        ipAddress: activities[0].ipAddress,
+        browser: activities[0].deviceInfo?.browser || 'Unknown',
+        os: activities[0].deviceInfo?.os || 'Unknown',
+        device: activities[0].deviceInfo?.device || 'Desktop',
+        hasLogout
+      },
+      activities: activities.map(activity => ({
+        id: activity._id,
+        action: activity.action,
+        description: activity.description,
+        actionType: activity.actionType,
+        timestamp: activity.timestamp,
+        status: activity.status,
+        statusCode: activity.statusCode,
+        requestUrl: activity.requestUrl,
+        requestMethod: activity.requestMethod,
+        category: activity.category,
+        severity: activity.severity,
+        ipAddress: activity.ipAddress,
+        responseTime: activity.responseTime,
+        targetResource: activity.targetResource,
+        targetResourceId: activity.targetResourceId,
+        details: activity.details
+      }))
+    });
+    
+  } catch (err) {
+    console.error('Error fetching session activities:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Advanced Audit Logs Endpoint with Comprehensive Filtering and Statistics
 exports.getAdvancedAuditLogs = async (req, res) => {
   try {
@@ -535,7 +696,14 @@ exports.getAllStudents = async (req, res) => {
       ]
     })
       .populate('school', 'name code')
-      .populate('assignedSections', 'name code');
+      .populate({
+        path: 'assignedSections',
+        select: 'name code courses',
+        populate: {
+          path: 'courses',
+          select: 'title courseCode'
+        }
+      });
     res.json(students);
   } catch (err) {
     res.status(500).json({ message: err.message });

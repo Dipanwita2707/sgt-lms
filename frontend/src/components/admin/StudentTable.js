@@ -127,31 +127,54 @@ const StudentTable = ({ students, onEdit, onRemove }) => {
                   )}
                 </TableCell>
                 <TableCell>
-                  {student.coursesAssigned && student.coursesAssigned.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {student.coursesAssigned.map((course, index) => (
-                        <Tooltip 
-                          key={index} 
-                          title={getCourseNameById(course)}
-                          arrow
-                        >
-                          <Chip
-                            label={getCourseCode(course)}
-                            size="small"
-                            sx={{ 
-                              backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                              borderRadius: 1,
-                              '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.12)' }
-                            }}
-                          />
-                        </Tooltip>
-                      ))}
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No courses assigned
-                    </Typography>
-                  )}
+                  {(() => {
+                    // Extract all courses from all assigned sections
+                    const allCourses = [];
+                    console.log('Student data:', student.name, {
+                      hasAssignedSections: !!student.assignedSections,
+                      sectionsCount: student.assignedSections?.length,
+                      sections: student.assignedSections
+                    });
+                    
+                    if (student.assignedSections && student.assignedSections.length > 0) {
+                      student.assignedSections.forEach(section => {
+                        if (section.courses && section.courses.length > 0) {
+                          section.courses.forEach(course => {
+                            // Avoid duplicates
+                            if (!allCourses.find(c => c._id === course._id)) {
+                              allCourses.push(course);
+                            }
+                          });
+                        }
+                      });
+                    }
+                    
+                    return allCourses.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {allCourses.map((course, index) => (
+                          <Tooltip 
+                            key={index} 
+                            title={`${course.courseCode}: ${course.title}`}
+                            arrow
+                          >
+                            <Chip
+                              label={course.courseCode}
+                              size="small"
+                              sx={{ 
+                                backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                                borderRadius: 1,
+                                '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.12)' }
+                              }}
+                            />
+                          </Tooltip>
+                        ))}
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No courses assigned
+                      </Typography>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell>
                   <Chip 

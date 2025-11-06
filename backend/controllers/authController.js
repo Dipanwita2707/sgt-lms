@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const AuditLog = require('../models/AuditLog');
+const { v4: uuidv4 } = require('uuid');
 
 // Helper function to extract IP address
 const getIpAddress = (req) => {
@@ -19,8 +20,11 @@ const getIpAddress = (req) => {
 // Logout (optional: implement token blacklisting)
 exports.logout = async (req, res) => {
   try {
-    // Log logout action
+    // Log logout action with session termination
     if (req.user && req.user._id) {
+      const sessionId = req.user.sessionId || null;
+      console.log('🔓 Session ended:', sessionId, 'for user:', req.user.email);
+      
       await AuditLog.create({
         action: 'USER_LOGOUT',
         description: `User ${req.user.name} (${req.user.email}) logged out successfully`,
@@ -28,6 +32,7 @@ exports.logout = async (req, res) => {
         performedBy: req.user._id,
         performedByRole: req.user.role,
         performedByName: req.user.name,
+        sessionId: sessionId, // Link logout to the session
         performedByEmail: req.user.email,
         ipAddress: getIpAddress(req),
         userAgent: req.headers['user-agent'] || 'Unknown',
@@ -37,6 +42,7 @@ exports.logout = async (req, res) => {
         severity: 'info',
         category: 'authentication',
         details: {
+          sessionId: sessionId,
           logoutTime: new Date(),
           sessionInfo: {
             userAgent: req.headers['user-agent'],
@@ -384,6 +390,10 @@ exports.login = async (req, res) => {
     
     console.log('Normalized permissions:', normalizedPermissions);
     
+    // Generate unique session ID for this login session
+    const sessionId = uuidv4();
+    console.log('🔑 New session created:', sessionId, 'for user:', user.email);
+    
     const token = jwt.sign({ 
       _id: user._id,
       id: user._id, 
@@ -397,10 +407,11 @@ exports.login = async (req, res) => {
       departments: user.departments || [],
       // Role-specific assignments for enhanced multi-role system
       roleAssignments: user.roleAssignments || [],
-      permissions: normalizedPermissions
+      permissions: normalizedPermissions,
+      sessionId: sessionId // Include session ID in JWT token
     }, process.env.JWT_SECRET, { expiresIn: '1d' });
     
-    // Log successful login
+    // Log successful login with session ID
     await AuditLog.create({
       action: 'USER_LOGIN',
       description: `User ${user.name} (${user.email}) logged in successfully using ${loginIdentifier.includes('@') ? 'email' : 'UID'} authentication`,
@@ -409,6 +420,7 @@ exports.login = async (req, res) => {
       performedByRole: user.role,
       performedByName: user.name,
       performedByEmail: user.email,
+      sessionId: sessionId, // Link this login to the session
       ipAddress: getIpAddress(req),
       userAgent: req.headers['user-agent'] || 'Unknown',
       requestMethod: req.method,
@@ -418,6 +430,7 @@ exports.login = async (req, res) => {
       severity: 'info',
       category: 'authentication',
       details: {
+        sessionId: sessionId,
         loginMethod: loginIdentifier.includes('@') ? 'email' : 'uid',
         loginIdentifier: loginIdentifier,
         userRole: user.role,

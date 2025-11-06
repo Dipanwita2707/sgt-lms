@@ -15,7 +15,8 @@ import {
   Divider,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import axios from 'axios';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -139,12 +140,30 @@ const AdminDashboard = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
   const [activityLoading, setActivityLoading] = useState(true);
+  const [lastActivityUpdate, setLastActivityUpdate] = useState(null);
 
   // Check if we're on the main dashboard route
   const isOnMainDashboard = location.pathname === '/admin/dashboard' || location.pathname === '/admin/dashboard/';
 
+  // Fetch recent activity function
+  const fetchRecentActivity = async () => {
+    try {
+      const res = await axios.get('/api/admin/audit-logs/recent', { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      setRecentActivity(res.data.logs || []);
+      setLastActivityUpdate(res.data.timestamp || new Date());
+      setActivityLoading(false);
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+      setRecentActivity([]);
+      setActivityLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
+    
     // Fetch notifications
     (async () => {
       try {
@@ -158,19 +177,21 @@ const AdminDashboard = () => {
       }
     })();
 
-    // Fetch recent activity
-    (async () => {
-      try {
-        const res = await axios.get('/api/admin/audit-logs/recent', { headers: { Authorization: `Bearer ${token}` } });
-        setRecentActivity(res.data.logs || []);
-        setActivityLoading(false);
-      } catch (error) {
-        console.error('Error fetching recent activity:', error);
-        setRecentActivity([]);
-        setActivityLoading(false);
+    // Initial fetch of recent activity
+    fetchRecentActivity();
+
+    // Set up auto-refresh for real-time updates (every 30 seconds)
+    const activityRefreshInterval = setInterval(() => {
+      if (isOnMainDashboard) {
+        fetchRecentActivity();
       }
-    })();
-  }, [token]);
+    }, 30000); // Refresh every 30 seconds
+
+    // Cleanup interval on unmount
+    return () => {
+      clearInterval(activityRefreshInterval);
+    };
+  }, [token, isOnMainDashboard]);
 
   const renderListItems = (items, loading, emptyMessage) => {
     if (loading) {
@@ -591,29 +612,75 @@ const AdminDashboard = () => {
                               }
                               subheader={
                                 <Typography variant="body2" sx={{ color: '#64748b' }}>
-                                  System activity logs
+                                  {lastActivityUpdate && `Last updated: ${new Date(lastActivityUpdate).toLocaleTimeString()}`}
                                 </Typography>
                               }
                               action={
-                                <IconButton size="small">
+                                <IconButton size="small" onClick={fetchRecentActivity} title="Refresh">
                                   <MoreVertIcon />
                                 </IconButton>
                               }
                             />
                             <CardContent sx={{ maxHeight: '200px', overflowY: 'auto' }}>
-                              <List dense>
-                                {renderListItems(recentActivity, activityLoading, "No recent activity")}
-                                {!activityLoading && recentActivity.slice(0, 4).map((activity, index) => (
-                                  <ListItem key={index} sx={{ px: 0 }}>
-                                    <ListItemText
-                                      primary={activity.action}
-                                      secondary={new Date(activity.timestamp).toLocaleString()}
-                                      primaryTypographyProps={{ variant: 'body2' }}
-                                      secondaryTypographyProps={{ variant: 'caption' }}
-                                    />
-                                  </ListItem>
-                                ))}
-                              </List>
+                              {activityLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                                  <CircularProgress size={24} />
+                                </Box>
+                              ) : recentActivity.length === 0 ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                                  No recent activity
+                                </Typography>
+                              ) : (
+                                <List dense>
+                                  {recentActivity.slice(0, 5).map((activity, index) => {
+                                    // Format the action text
+                                    const actionText = activity.action?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                                    const performedBy = activity.performedBy?.name || activity.performedByName || 'System';
+                                    const timeAgo = new Date(activity.createdAt || activity.timestamp);
+                                    
+                                    // Get severity color
+                                    const severityColors = {
+                                      critical: '#dc2626',
+                                      high: '#ea580c',
+                                      medium: '#f59e0b',
+                                      low: '#10b981',
+                                      info: '#6b7280'
+                                    };
+                                    const severityColor = severityColors[activity.severity] || '#6b7280';
+                                    
+                                    return (
+                                      <ListItem key={activity._id || index} sx={{ px: 0, borderBottom: index < 4 ? '1px solid #f1f5f9' : 'none' }}>
+                                        <Box sx={{ width: 3, height: 40, bgcolor: severityColor, borderRadius: 1, mr: 2 }} />
+                                        <ListItemText
+                                          primary={
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                {actionText}
+                                              </Typography>
+                                              {activity.status === 'failed' && (
+                                                <Chip label="Failed" size="small" color="error" sx={{ height: 18, fontSize: '0.7rem' }} />
+                                              )}
+                                            </Box>
+                                          }
+                                          secondary={
+                                            <Box sx={{ mt: 0.5 }}>
+                                              <Typography variant="caption" color="text.secondary">
+                                                by {performedBy} • {timeAgo.toLocaleString()}
+                                              </Typography>
+                                              {activity.targetResource && (
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                  Target: {activity.targetResource}
+                                                </Typography>
+                                              )}
+                                            </Box>
+                                          }
+                                          primaryTypographyProps={{ variant: 'body2' }}
+                                        />
+                                      </ListItem>
+                                    );
+                                  })}
+                                </List>
+                              )}
                             </CardContent>
                           </Card>
                         </Grid>

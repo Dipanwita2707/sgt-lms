@@ -780,8 +780,9 @@ const GroupChatPageEnhanced = () => {
     lastNotificationTime.current = now;
 
     try {
+      const senderName = message.sender?.name || 'Unknown User';
       const notification = new Notification(`New message in ${courseInfo?.courseCode || 'Chat'}`, {
-        body: `${message.sender.name}: ${message.message.substring(0, 100)}${message.message.length > 100 ? '...' : ''}`,
+        body: `${senderName}: ${message.message.substring(0, 100)}${message.message.length > 100 ? '...' : ''}`,
         icon: '/logo192.png',
         badge: '/logo192.png',
         tag: 'chat-message',
@@ -809,7 +810,7 @@ const GroupChatPageEnhanced = () => {
     }
 
     const unreadMessages = newMessages.filter(msg => 
-      msg.sender._id !== currentUser._id && 
+      msg.sender && msg.sender._id !== currentUser._id && 
       (!lastReadMessageId || msg._id > lastReadMessageId)
     );
 
@@ -963,7 +964,7 @@ const GroupChatPageEnhanced = () => {
         messageType: message.messageType, 
         hasFileUrl: !!message.fileUrl,
         fileName: message.fileName,
-        senderId: message.sender._id,
+        senderId: message.sender?._id || null,
         currentUserId: currentUser?._id,
         fullMessage: message 
       });
@@ -988,7 +989,7 @@ const GroupChatPageEnhanced = () => {
         }
         
         // Only add if it's from someone else
-        if (message.sender._id !== currentUser?._id) {
+        if (message.sender && message.sender._id !== currentUser?._id) {
           console.log('✅ Adding message from other user to chat');
           
           // Trigger notifications for new message
@@ -1833,14 +1834,14 @@ const GroupChatPageEnhanced = () => {
     if (searchQuery) {
       filtered = filtered.filter(msg => 
         msg.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        msg.sender.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (msg.sender && msg.sender.name && msg.sender.name.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
     
     if (messageFilter !== 'all') {
       filtered = filtered.filter(msg => {
         if (messageFilter === 'my-messages') {
-          return msg.sender._id === currentUser?._id;
+          return msg.sender && msg.sender._id === currentUser?._id;
         }
         return true;
       });
@@ -2160,7 +2161,7 @@ const GroupChatPageEnhanced = () => {
                 const count = (() => {
                   switch (filter.value) {
                     case 'all': return messages.length;
-                    case 'my-messages': return messages.filter(m => m.sender._id === currentUser?._id).length;
+                    case 'my-messages': return messages.filter(m => m.sender && m.sender._id === currentUser?._id).length;
                     default: return 0;
                   }
                 })();
@@ -2308,10 +2309,11 @@ const GroupChatPageEnhanced = () => {
             <Box sx={{ p: 2 }}>
               {filteredMessages.map((message, index) => {
                 const isConsecutive = index > 0 && 
+                  filteredMessages[index - 1].sender && message.sender &&
                   filteredMessages[index - 1].sender._id === message.sender._id &&
                   (new Date(message.timestamp).getTime() - new Date(filteredMessages[index - 1].timestamp).getTime()) < 60000;
                 
-                const isOwn = message.sender._id === currentUser?._id;
+                const isOwn = message.sender && message.sender._id === currentUser?._id;
                 
                 // Use tempId for optimistic messages, _id for real messages
                 const messageKey = message.tempId || message._id;
@@ -2366,7 +2368,7 @@ const GroupChatPageEnhanced = () => {
                     >
                       {!isConsecutive && (
                         <OnlineIndicator
-                          isOnline={Array.isArray(onlineUsers) && onlineUsers.some(u => u.userId === message.sender._id)}
+                          isOnline={message.sender && Array.isArray(onlineUsers) && onlineUsers.some(u => u.userId === message.sender._id)}
                           overlap="circular"
                           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                           variant="dot"
@@ -2383,7 +2385,7 @@ const GroupChatPageEnhanced = () => {
                               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                             }}
                           >
-                            {message.sender.name.substring(0, 2).toUpperCase()}
+                            {message.sender?.name ? message.sender.name.substring(0, 2).toUpperCase() : '??'}
                           </Avatar>
                         </OnlineIndicator>
                       )}
@@ -2413,10 +2415,10 @@ const GroupChatPageEnhanced = () => {
                                 color: isOwn ? colors.primary.main : colors.secondary.main,
                               }}
                             >
-                              {message.sender.name}
+                              {message.sender?.name || 'Unknown User'}
                             </Typography>
                             {/* Display new UID (or fallback to legacy regNo/teacherId) */}
-                            {(message.sender.uid || message.sender.regNo || message.sender.teacherId || message.sender.id) && (
+                            {message.sender && (message.sender.uid || message.sender.regNo || message.sender.teacherId || message.sender.id) && (
                               <Chip 
                                 label={message.sender.uid || message.sender.regNo || message.sender.teacherId || message.sender.id}
                                 size="small"
@@ -2432,7 +2434,7 @@ const GroupChatPageEnhanced = () => {
                               />
                             )}
                             <Chip 
-                              label={message.sender.roles?.[0] || 'student'}
+                              label={message.sender?.roles?.[0] || 'student'}
                               size="small"
                               sx={{ 
                                 height: 20,
@@ -2456,7 +2458,7 @@ const GroupChatPageEnhanced = () => {
                           >
                             <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
                               <Typography variant="caption" sx={{ color: colors.neutral[600] }}>
-                                Replying to {message.replyTo.sender.name}
+                                Replying to {message.replyTo?.sender?.name || 'Unknown User'}
                               </Typography>
                               <Typography variant="body2" sx={{ 
                                 color: colors.neutral[700],
@@ -2612,7 +2614,7 @@ const GroupChatPageEnhanced = () => {
                                   size="small"
                                   onClick={() => {
                                     setReplyTo(message);
-                                    showSnackbar(`Replying to ${message.sender.name}`, 'info');
+                                    showSnackbar(`Replying to ${message.sender?.name || 'Unknown User'}`, 'info');
                                     inputRef.current?.focus();
                                   }}
                                   sx={{ 
@@ -2886,7 +2888,7 @@ const GroupChatPageEnhanced = () => {
               <ReplyIcon sx={{ color: colors.primary.main }} />
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption" sx={{ color: colors.neutral[600] }}>
-                  Replying to {replyTo.sender.name}
+                  Replying to {replyTo?.sender?.name || 'Unknown User'}
                 </Typography>
                 <Typography variant="body2" sx={{ 
                   color: colors.neutral[700],

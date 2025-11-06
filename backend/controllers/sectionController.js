@@ -343,6 +343,14 @@ exports.assignStudents = async (req, res) => {
     section.students.push(...newStudents);
     await section.save();
     
+    // Also update each student's assignedSections field for consistency
+    for (const studentId of newStudents) {
+      await User.findByIdAndUpdate(studentId, {
+        $addToSet: { assignedSections: sectionId }
+      });
+    }
+    console.log(`Updated assignedSections for ${newStudents.length} students`);
+    
     // Return updated section with populated data
     const updatedSection = await Section.findById(sectionId)
       .populate('school', 'name code')

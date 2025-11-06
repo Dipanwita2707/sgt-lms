@@ -123,9 +123,15 @@ const StudentCourseUnits = () => {
   };
   
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3, md: 4 }, mb: 4, px: { xs: 1, sm: 2, md: 3 } }}>
+      {/* Breadcrumbs - Hide on mobile */}
+      <Breadcrumbs 
+        aria-label="breadcrumb" 
+        sx={{ 
+          mb: 2, 
+          display: { xs: 'none', sm: 'flex' }
+        }}
+      >
         <Link component={RouterLink} to="/student" color="inherit">
           Dashboard
         </Link>
@@ -157,17 +163,17 @@ const StudentCourseUnits = () => {
         </Box>
       ) : (
         <>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
             {course?.title || 'Course Units'}
           </Typography>
           
           {course?.courseCode && (
-            <Typography variant="subtitle1" color="text.secondary" paragraph>
+            <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
               Course Code: {course.courseCode}
             </Typography>
           )}
           
-          <Alert severity="info" sx={{ mb: 3 }}>
+          <Alert severity="info" sx={{ mb: 3, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
             Each unit contains videos and other learning materials. Complete units in order to unlock subsequent units.
           </Alert>
           
@@ -182,7 +188,14 @@ const StudentCourseUnits = () => {
                 '& .MuiAccordionSummary-root': {
                   bgcolor: unit.unlocked 
                     ? (calculateUnitProgress(unit) === 100 ? 'success.light' : 'primary.light') 
-                    : 'action.disabledBackground'
+                    : 'action.disabledBackground',
+                  px: { xs: 1, sm: 2 },
+                  py: { xs: 0.5, sm: 1 },
+                  cursor: unit.unlocked ? 'pointer' : 'not-allowed'
+                },
+                '& .MuiAccordionDetails-root': {
+                  px: { xs: 1, sm: 2, md: 3 },
+                  py: { xs: 1.5, sm: 2 }
                 }
               }}
             >
@@ -191,12 +204,32 @@ const StudentCourseUnits = () => {
                 aria-controls={`unit-${unit._id}-content`}
                 id={`unit-${unit._id}-header`}
               >
-                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <Typography variant="h6">
-                      Unit {index + 1}: {unit.title}
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', pr: 1 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    width: '100%',
+                    flexWrap: { xs: 'wrap', sm: 'nowrap' }
+                  }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' },
+                        mb: { xs: 1, sm: 0 },
+                        flex: { xs: '1 1 100%', sm: '1 1 auto' },
+                        fontWeight: 600
+                      }}
+                    >
+                      Week {index + 1}: {unit.title}
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      flexWrap: 'wrap',
+                      justifyContent: { xs: 'flex-start', sm: 'flex-end' }
+                    }}>
                       {/* Deadline Warning */}
                       {unit.deadlineInfo && unit.deadlineInfo.hasDeadline && (
                         <Chip 
@@ -216,20 +249,23 @@ const StudentCourseUnits = () => {
                           }
                           size="small"
                           variant={unit.deadlineInfo.isExpired ? 'filled' : 'outlined'}
+                          sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
                         />
                       )}
                       {unit.unlocked && unit.progress && (
                         <Chip 
-                          label={`${calculateUnitProgress(unit)}% Complete`}
+                          label={`${calculateUnitProgress(unit)}% complete`}
                           color={calculateUnitProgress(unit) === 100 ? 'success' : 'primary'}
                           size="small"
+                          sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
                         />
                       )}
                       {!unit.unlocked && (
                         <Chip 
-                          icon={<LockIcon />}
+                          icon={<LockIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} />}
                           label="Locked" 
                           size="small"
+                          sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
                         />
                       )}
                     </Box>
@@ -239,11 +275,23 @@ const StudentCourseUnits = () => {
                     <LinearProgress 
                       variant="determinate" 
                       value={calculateUnitProgress(unit)} 
-                      sx={{ mt: 1, mb: 1, height: 8, borderRadius: 1 }}
+                      sx={{ 
+                        mt: 1, 
+                        mb: 1, 
+                        height: { xs: 6, sm: 8 }, 
+                        borderRadius: 1 
+                      }}
                     />
                   )}
                   
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      display: { xs: 'none', sm: 'block' }
+                    }}
+                  >
                     {unit.description}
                   </Typography>
                 </Box>
@@ -277,49 +325,62 @@ const StudentCourseUnits = () => {
                           alignItems="flex-start"
                           sx={{ 
                             cursor: 'pointer',
-                            '&:hover': { bgcolor: 'action.hover' }
+                            '&:hover': { bgcolor: 'action.hover' },
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            px: { xs: 1, sm: 2 },
+                            py: { xs: 1.5, sm: 2 }
                           }}
                           onClick={() => handleWatchVideo(unit._id, video._id)}
                         >
-                          <ListItemIcon>
+                          <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 }, mt: { xs: 0, sm: '4px' } }}>
                             {video.watched ? (
-                              <CheckCircleIcon color="success" />
+                              <CheckCircleIcon color="success" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
                             ) : (
-                              <PlayCircleOutlineIcon color="primary" />
+                              <PlayCircleOutlineIcon color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
                             )}
                           </ListItemIcon>
                           
                           <ListItemText
+                            sx={{ m: 0, flex: 1 }}
                             primary={
-                              <Typography variant="subtitle1">
+                              <Typography variant="subtitle1" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                                 {videoIndex + 1}. {video.title}
                                 {video.watched && (
                                   <Chip 
                                     size="small" 
                                     label="Watched" 
                                     color="success" 
-                                    sx={{ ml: 1 }} 
+                                    sx={{ ml: 1, height: { xs: 18, sm: 24 }, fontSize: { xs: '0.65rem', sm: '0.75rem' } }} 
                                   />
                                 )}
                               </Typography>
                             }
                             secondary={
                               <>
-                                <Typography component="span" variant="body2" color="text.primary">
-                                  Duration: {formatDuration(video.duration || 0)}
+                                <Typography 
+                                  component="span" 
+                                  variant="body2" 
+                                  color="text.primary"
+                                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                                >
+                                  {formatDuration(video.duration || 0)}
                                 </Typography>
                                 
                                 {/* Add progress bar for each video */}
                                 {video.duration > 0 && (
                                   <Box sx={{ mt: 1, mb: 1 }}>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <Typography 
+                                      variant="body2" 
+                                      color="text.secondary" 
+                                      sx={{ mb: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                                    >
                                       Progress: {Math.min(100, Math.round((video.timeSpent / video.duration) * 100))}%
                                     </Typography>
                                     <Box sx={{ width: '100%', mr: 1 }}>
                                       <Box
                                         sx={{
                                           width: '100%',
-                                          height: 8,
+                                          height: { xs: 6, sm: 8 },
                                           bgcolor: 'grey.300',
                                           borderRadius: 5,
                                           position: 'relative'
@@ -343,7 +404,14 @@ const StudentCourseUnits = () => {
                                 )}
                                 
                                 {video.description && (
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography 
+                                    variant="body2" 
+                                    color="text.secondary"
+                                    sx={{ 
+                                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                                      display: { xs: 'none', sm: 'block' }
+                                    }}
+                                  >
                                     {video.description.substring(0, 100)}
                                     {video.description.length > 100 ? '...' : ''}
                                   </Typography>
@@ -356,7 +424,13 @@ const StudentCourseUnits = () => {
                             variant="outlined" 
                             color="primary" 
                             size="small"
-                            sx={{ mt: 1 }}
+                            sx={{ 
+                              mt: { xs: 1, sm: 1 },
+                              ml: { xs: 0, sm: 2 },
+                              width: { xs: '100%', sm: 'auto' },
+                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                              px: { xs: 2, sm: 3 }
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleWatchVideo(unit._id, video._id);
@@ -371,7 +445,11 @@ const StudentCourseUnits = () => {
                     ))}
                   </List>
                 ) : (
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography 
+                    variant="body1" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                  >
                     No videos available in this unit yet.
                   </Typography>
                 )}
@@ -408,60 +486,114 @@ const StudentCourseUnits = () => {
                 {/* Display Quiz Pool if available */}
                 {unit.quizPool && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Quiz
+                    <Typography 
+                      variant="subtitle1" 
+                      gutterBottom
+                      sx={{ fontSize: { xs: '0.95rem', sm: '1rem' } }}
+                    >
+                      Unit Quiz
                     </Typography>
-                    <List>
-                      <ListItem>
-                        <ListItemIcon>
-                          <SchoolIcon color={quizLocks[unit._id]?.isLocked ? 'error' : 'primary'} />
+                    <Paper elevation={2} sx={{ p: { xs: 1.5, sm: 2 }, mb: 2 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                        gap: 2
+                      }}>
+                        <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                          <SchoolIcon 
+                            color={quizLocks[unit._id]?.isLocked ? 'error' : 'primary'}
+                            sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}
+                          />
                         </ListItemIcon>
-                        <ListItemText 
-                          primary={unit.quizPool.title || `${unit.title} Quiz`}
-                          secondary={
-                            quizLocks[unit._id]?.isLocked 
-                              ? `🔒 Quiz locked: ${quizLocks[unit._id]?.lockInfo?.reason || 'Contact admin to unlock'}`
-                              : unit.quizPool.description || `Complete this quiz to progress in the course`
-                          }
-                        />
-                        {quizLocks[unit._id]?.isLocked ? (
-                          <Alert severity="error" sx={{ ml: 2, maxWidth: 200 }}>
-                            Quiz Locked - Contact Admin
-                          </Alert>
-                        ) : (
-                          <Button 
-                            variant="contained" 
-                            color="primary" 
-                            size="small"
-                            onClick={async () => {
-                              // Check quiz availability before starting
-                              const availability = await checkQuizAvailability(unit._id);
-                              if (availability.isLocked) {
-                                alert(`Quiz is locked: ${availability.lockInfo?.reason || 'Contact admin to unlock'}`);
-                                return;
-                              }
-                              
-                              // Attempt to enter fullscreen using the user click gesture
-                              const el = document.documentElement;
-                              try {
-                                let p;
-                                if (el.requestFullscreen) p = el.requestFullscreen();
-                                else if (el.webkitRequestFullscreen) p = el.webkitRequestFullscreen();
-                                else if (el.mozRequestFullScreen) p = el.mozRequestFullScreen();
-                                else if (el.msRequestFullscreen) p = el.msRequestFullscreen();
-                                if (p && typeof p.catch === 'function') {
-                                  try { await p; } catch (_) { /* ignore permission errors */ }
-                                }
-                              } catch (_) { /* ignore */ }
-                              // Navigate to secure launcher so the quiz opens in secure/FS flow
-                              navigate(`/student/course/${courseId}/quiz/${unit.quizPool._id}`);
+                        
+                        <Box sx={{ flex: 1 }}>
+                          <Typography 
+                            variant="subtitle2" 
+                            sx={{ 
+                              fontWeight: 'bold',
+                              fontSize: { xs: '0.875rem', sm: '1rem' },
+                              mb: 0.5
                             }}
                           >
-                            Start Quiz
-                          </Button>
-                        )}
-                      </ListItem>
-                    </List>
+                            {unit.quizPool.title || `${unit.title} Quiz`}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary"
+                            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                          >
+                            {quizLocks[unit._id]?.isLocked 
+                              ? `🔒 ${quizLocks[unit._id]?.lockInfo?.reason || 'Complete all 1 videos in this unit to unlock the quiz'}`
+                              : unit.quizPool.description || `Complete this quiz to test your knowledge`
+                            }
+                          </Typography>
+                          
+                          {unit.quizPool.attempts !== undefined && (
+                            <Chip 
+                              label={`Attempts: ${unit.quizPool.attempts || 0}/3`}
+                              size="small"
+                              color={unit.quizPool.attempts >= 3 ? 'error' : 'default'}
+                              sx={{ 
+                                mt: 1,
+                                fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                              }}
+                            />
+                          )}
+                        </Box>
+                        
+                        <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                          {quizLocks[unit._id]?.isLocked ? (
+                            <Alert 
+                              severity="warning" 
+                              sx={{ 
+                                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                py: { xs: 0.5, sm: 1 }
+                              }}
+                            >
+                              Quiz Locked
+                            </Alert>
+                          ) : (
+                            <Button 
+                              variant="contained" 
+                              color="primary" 
+                              size={window.innerWidth < 600 ? "medium" : "large"}
+                              fullWidth={window.innerWidth < 600}
+                              sx={{ 
+                                fontSize: { xs: '0.875rem', sm: '1rem' },
+                                px: { xs: 3, sm: 4 },
+                                py: { xs: 1, sm: 1.5 }
+                              }}
+                              onClick={async () => {
+                                // Check quiz availability before starting
+                                const availability = await checkQuizAvailability(unit._id);
+                                if (availability.isLocked) {
+                                  alert(`Quiz is locked: ${availability.lockInfo?.reason || 'Contact admin to unlock'}`);
+                                  return;
+                                }
+                                
+                                // Attempt to enter fullscreen using the user click gesture
+                                const el = document.documentElement;
+                                try {
+                                  let p;
+                                  if (el.requestFullscreen) p = el.requestFullscreen();
+                                  else if (el.webkitRequestFullscreen) p = el.webkitRequestFullscreen();
+                                  else if (el.mozRequestFullScreen) p = el.mozRequestFullScreen();
+                                  else if (el.msRequestFullscreen) p = el.msRequestFullscreen();
+                                  if (p && typeof p.catch === 'function') {
+                                    try { await p; } catch (_) { /* ignore permission errors */ }
+                                  }
+                                } catch (_) { /* ignore */ }
+                                // Navigate to secure launcher so the quiz opens in secure/FS flow
+                                navigate(`/student/course/${courseId}/quiz/${unit.quizPool._id}`);
+                              }}
+                            >
+                              Start Quiz
+                            </Button>
+                          )}
+                        </Box>
+                      </Box>
+                    </Paper>
                   </Box>
                 )}
 

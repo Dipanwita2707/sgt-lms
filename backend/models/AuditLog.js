@@ -51,10 +51,58 @@ const AuditLogSchema = new mongoose.Schema({
   category: { 
     type: String, 
     enum: [
-      'authentication', 'authorization', 'user_management', 'course_management',
-      'student_management', 'teacher_management', 'content_management', 
-      'analytics', 'settings', 'security', 'bulk_operations', 'data_export',
-      'data_import', 'system', 'other'
+      // Authentication & Authorization
+      'authentication', 'authorization', 'session_management',
+      
+      // User Management (All Roles)
+      'user_management', 'student_management', 'teacher_management', 
+      'admin_management', 'role_management', 'permission_management',
+      
+      // Academic Structure
+      'organization', 'school_management', 'department_management',
+      'course_management', 'section_management', 'unit_management',
+      
+      // Content & Materials
+      'content_management', 'video_management', 'reading_materials',
+      'resource_management', 'file_management',
+      
+      // Assessment & Evaluation
+      'assessment', 'quiz_management', 'quiz_pool_management', 
+      'assignment_management', 'grading', 'quiz_unlock',
+      
+      // Communication
+      'communication', 'announcement', 'notification', 
+      'chat', 'group_chat', 'messaging',
+      
+      // Analytics & Reporting
+      'analytics', 'student_analytics', 'teacher_analytics',
+      'hod_analytics', 'dean_analytics', 'section_analytics',
+      'course_analytics', 'performance_tracking',
+      
+      // Administrative Functions
+      'administration', 'dean_operations', 'hod_operations',
+      'cc_operations', 'teacher_requests', 'approval_workflow',
+      
+      // Certification & Progress
+      'certification', 'certificate_generation', 'progress_tracking',
+      
+      // Live Sessions
+      'live_session', 'live_class', 'virtual_classroom',
+      
+      // Data Operations
+      'bulk_operations', 'data_export', 'data_import', 
+      'csv_upload', 'bulk_assignment',
+      
+      // Security & Monitoring
+      'security', 'access_control', 'quiz_security',
+      'integrity_monitoring', 'suspicious_activity',
+      
+      // System Operations
+      'system', 'settings', 'configuration', 'maintenance',
+      'hierarchy_management', 'video_unlock',
+      
+      // Other
+      'other'
     ],
     default: 'other',
     index: true

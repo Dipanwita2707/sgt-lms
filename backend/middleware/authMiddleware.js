@@ -30,6 +30,8 @@ exports.authenticateToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.id);
     if (!req.user) return res.status(401).json({ message: 'User not found' });
+    // Preserve sessionId from JWT token for audit logging
+    req.user.sessionId = decoded.sessionId;
     next();
   } catch (err) {
     res.status(401).json({ message: 'Token is not valid' });

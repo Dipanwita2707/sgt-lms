@@ -4,9 +4,6 @@ import {
   TextField, 
   Button, 
   Alert, 
-  FormGroup, 
-  FormControlLabel, 
-  Checkbox, 
   MenuItem, 
   Select, 
   FormControl, 
@@ -14,22 +11,12 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 
-const PERMISSIONS = [
-  { key: 'manage_teachers', label: 'Manage Teachers' },
-  { key: 'manage_students', label: 'Manage Students' },
-  { key: 'manage_courses', label: 'Manage Courses' },
-  { key: 'manage_videos', label: 'Manage Videos' },
-  { key: 'view_analytics', label: 'View Analytics' },
-  // Add more as needed
-];
-
 const AddTeacherForm = ({ onAdd }) => {
 
   const [form, setForm] = useState({ 
     name: '', 
     email: '', 
     password: '', 
-    permissions: [],
     school: '',
     department: ''
   });
@@ -101,15 +88,6 @@ const AddTeacherForm = ({ onAdd }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setTouched({ ...touched, [e.target.name]: true });
   };
-  
-  const handlePermissionChange = key => {
-    setForm(f => ({
-      ...f,
-      permissions: f.permissions.includes(key)
-        ? f.permissions.filter(p => p !== key)
-        : [...f.permissions, key]
-    }));
-  };
 
   const validate = () => {
     if (!form.name.trim()) return 'Name is required';
@@ -134,7 +112,7 @@ const AddTeacherForm = ({ onAdd }) => {
     try {
       await onAdd(form);
       setSuccess('Teacher added successfully');
-      setForm({ name: '', email: '', password: '', permissions: [], school: '', department: '' });
+      setForm({ name: '', email: '', password: '', school: '', department: '' });
       setTouched({});
     } catch (err) {
       setError(err.message || 'Failed to add teacher');
@@ -235,15 +213,6 @@ const AddTeacherForm = ({ onAdd }) => {
         {touched.department && !form.department && <Alert severity="error" sx={{ mt: 1 }}>Department is required</Alert>}
       </FormControl>
       
-      <FormGroup row sx={{ mt: 2 }}>
-        {PERMISSIONS.map(p => (
-          <FormControlLabel
-            key={p.key}
-            control={<Checkbox checked={form.permissions.includes(p.key)} onChange={() => handlePermissionChange(p.key)} />}
-            label={p.label}
-          />
-        ))}
-      </FormGroup>
       <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>Add Teacher</Button>
     </Box>
   );

@@ -10,7 +10,7 @@ import {
   Tabs, 
   Tab 
 } from '@mui/material';
-import { StudentAnalytics, ExportAnalyticsButtons } from '../../components/admin/AnalyticsWidgets';
+import { StudentAnalytics } from '../../components/admin/AnalyticsWidgets';
 import BulkUploadStudents from '../../components/admin/BulkUploadStudents';
 import AssignCourseForm from '../../components/admin/AssignCourseForm';
 import StudentTable from '../../components/admin/StudentTable';
@@ -120,7 +120,6 @@ const StudentManagement = () => {
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>Manage Students</Typography>
-      <ExportAnalyticsButtons />
       
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 2 }}>
         <Tabs 

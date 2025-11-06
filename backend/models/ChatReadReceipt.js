@@ -44,6 +44,18 @@ chatReadReceiptSchema.index({ userId: 1, lastReadAt: -1 });
 // Static method to update or create read receipt
 chatReadReceiptSchema.statics.updateReadReceipt = async function(userId, courseId, sectionId, lastReadMessageId) {
   try {
+    // Validate that lastReadMessageId is a valid MongoDB ObjectId
+    // Skip temporary IDs (temp_...) or demo IDs (demo-msg-...)
+    if (lastReadMessageId && 
+        (typeof lastReadMessageId === 'string') && 
+        (lastReadMessageId.startsWith('temp_') || 
+         lastReadMessageId.startsWith('demo-msg-') ||
+         !mongoose.Types.ObjectId.isValid(lastReadMessageId))) {
+      console.log(`⚠️ Skipping read receipt update for invalid/temporary message ID: ${lastReadMessageId}`);
+      // Return existing receipt or null without updating
+      return await this.findOne({ userId, courseId, sectionId });
+    }
+    
     const receipt = await this.findOneAndUpdate(
       { userId, courseId, sectionId },
       { 

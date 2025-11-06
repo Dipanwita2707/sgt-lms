@@ -40,7 +40,6 @@ import StudentSection from '../components/student/StudentSection';
 // Live class components moved to independent video-call-module
 // import StudentLiveClassDashboard from '../components/student/StudentLiveClassDashboard';
 import QuizResults from '../components/student/QuizResults';
-import RecentVideos from '../components/student/RecentVideos';
 import StudentProfile from '../components/StudentProfile';
 import WatchHistory from '../components/student/WatchHistory';
 import ChatDashboard from '../components/ChatDashboard';
@@ -416,7 +415,7 @@ const StudentDashboard = () => {
         >
           <Box sx={{ 
             flex: 1, 
-            p: isOnLiveClass ? 0 : { xs: 2, md: 3 },
+            p: isOnLiveClass ? 0 : { xs: 0, sm: 1, md: 3 },
             backgroundColor: 'transparent',
             height: isOnLiveClass ? '100vh' : 'auto'
           }}>
@@ -430,7 +429,6 @@ const StudentDashboard = () => {
             <Route path="/section" element={<StudentSection user={currentUser} token={token} />} />
             {/* Live class routes moved to independent video-call-module */}
             {/* <Route path="/live-classes" element={<StudentLiveClassDashboard token={token} user={currentUser} />} /> */}
-            <Route path="/videos" element={<RecentVideos />} />
             <Route path="/watch-history" element={<WatchHistory />} />
             <Route path="/course/:courseId" element={<StudentCourseUnits />} />
             <Route path="/course/:courseId/videos" element={<StudentCourseVideos />} />

@@ -8,7 +8,6 @@ import {
   Grid, 
   Alert,
   FormHelperText,
-  InputAdornment,
   Autocomplete,
   Chip,
   FormControl,
@@ -29,16 +28,13 @@ const CreateStudentForm = ({ onStudentCreated }) => {
     password: '',
     regNo: '',
     school: '',
-    department: '',
     section: '',
     coursesAssigned: []
   });
   
   const [courses, setCourses] = useState([]);
   const [schools, setSchools] = useState([]);
-  const [departments, setDepartments] = useState([]);
   const [sections, setSections] = useState([]);
-  const [filteredDepartments, setFilteredDepartments] = useState([]);
   const [filteredSections, setFilteredSections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -48,7 +44,6 @@ const CreateStudentForm = ({ onStudentCreated }) => {
 
   useEffect(() => {
     fetchSchools();
-    fetchDepartments();
     fetchSections();
   }, []);
 
@@ -63,17 +58,6 @@ const CreateStudentForm = ({ onStudentCreated }) => {
     }
   };
 
-  const fetchDepartments = async () => {
-    try {
-      const response = await axios.get('/api/departments', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setDepartments(response.data);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
-
   const fetchSections = async () => {
     try {
       const response = await axios.get('/api/sections', {
@@ -85,33 +69,15 @@ const CreateStudentForm = ({ onStudentCreated }) => {
     }
   };
 
-  // Filter departments when school changes
+  // Filter sections when school changes
   useEffect(() => {
     if (formData.school) {
-      const filtered = departments.filter(dept => {
-        const deptSchoolId = typeof dept.school === 'string' ? dept.school : dept.school._id;
-        return deptSchoolId === formData.school;
-      });
-      setFilteredDepartments(filtered);
-      // Reset department and section if they don't belong to selected school
-      if (formData.department && !filtered.find(d => d._id === formData.department)) {
-        setFormData(prev => ({ ...prev, department: '', section: '' }));
-      }
-    } else {
-      setFilteredDepartments([]);
-      setFormData(prev => ({ ...prev, department: '', section: '' }));
-    }
-  }, [formData.school, departments]);
-
-  // Filter sections when department changes
-  useEffect(() => {
-    if (formData.department) {
       const filtered = sections.filter(section => {
-        const sectionDepId = typeof section.department === 'string' ? section.department : section.department._id;
-        return sectionDepId === formData.department;
+        const sectionSchoolId = typeof section.school === 'string' ? section.school : section.school._id;
+        return sectionSchoolId === formData.school;
       });
       setFilteredSections(filtered);
-      // Reset section if it doesn't belong to selected department
+      // Reset section if it doesn't belong to selected school
       if (formData.section && !filtered.find(s => s._id === formData.section)) {
         setFormData(prev => ({ ...prev, section: '' }));
       }
@@ -119,7 +85,7 @@ const CreateStudentForm = ({ onStudentCreated }) => {
       setFilteredSections([]);
       setFormData(prev => ({ ...prev, section: '' }));
     }
-  }, [formData.department, sections]);
+  }, [formData.school, sections]);
 
   const validateField = (name, value) => {
     switch (name) {
@@ -139,14 +105,13 @@ const CreateStudentForm = ({ onStudentCreated }) => {
             : '';
       case 'regNo':
         // RegNo is optional, as it will be auto-generated if not provided
+        // New format: 8 or more digits (numeric only, e.g., 00000001)
         if (value.trim() === '') return '';
-        return /^S\d{6}$/.test(value) 
+        return /^\d{8,}$/.test(value) 
           ? '' 
-          : 'Registration number should start with S followed by 6 digits';
+          : 'Registration number should be 8 or more digits (e.g., 00000001)';
       case 'school':
         return value.trim() === '' ? 'School is required' : '';
-      case 'department':
-        return ''; // Department is optional
       case 'section':
         return ''; // Section is optional
       default:
@@ -226,7 +191,6 @@ const CreateStudentForm = ({ onStudentCreated }) => {
       password: '',
       regNo: '',
       school: '',
-      department: '',
       section: '',
       coursesAssigned: []
     });
@@ -335,14 +299,15 @@ const CreateStudentForm = ({ onStudentCreated }) => {
               helperText={
                 touched.regNo && errors.regNo ? 
                 errors.regNo : 
-                "If left empty, a registration number will be automatically assigned"
+                "If left empty, an 8-digit registration number will be automatically assigned (e.g., 00000001)"
               }
               disabled={loading}
               margin="normal"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">S</InputAdornment>,
+              placeholder="00000001"
+              inputProps={{
+                pattern: "[0-9]*",
+                inputMode: "numeric"
               }}
-              placeholder="123456"
             />
           </Grid>
 
@@ -371,28 +336,6 @@ const CreateStudentForm = ({ onStudentCreated }) => {
 
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal" disabled={!formData.school || loading}>
-              <InputLabel>Department (Optional)</InputLabel>
-              <Select
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                label="Department (Optional)"
-              >
-                <MenuItem value="">
-                  <em>No Department</em>
-                </MenuItem>
-                {filteredDepartments.map((department) => (
-                  <MenuItem key={department._id} value={department._id}>
-                    {department.name} ({department.code})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal" disabled={!formData.department || loading}>
               <InputLabel>Section (Optional)</InputLabel>
               <Select
                 name="section"
@@ -421,16 +364,16 @@ const CreateStudentForm = ({ onStudentCreated }) => {
               • School assignment is required during admission
             </FormHelperText>
             <FormHelperText sx={{ mb: 0.5 }}>
-              • Department and Section assignments are optional during creation
+              • Section assignment is optional during creation
             </FormHelperText>
             <FormHelperText sx={{ mb: 0.5 }}>
-              • If you select a department, you can optionally assign the student to a section within that department
+              • Sections are filtered based on the selected school
             </FormHelperText>
             <FormHelperText sx={{ mb: 0.5 }}>
-              • If you leave the registration number empty, the system will generate one starting with "S" followed by 6 digits
+              • If you leave the registration number empty, the system will generate one (e.g., 00000001)
             </FormHelperText>
             <FormHelperText sx={{ mb: 0.5 }}>
-              • If you provide a registration number, make sure it starts with "S" followed by 6 digits
+              • If you provide a registration number, it should be 8 or more digits (numeric only)
             </FormHelperText>
             <FormHelperText sx={{ mb: 0.5 }}>
               • Courses can be assigned to students after creation

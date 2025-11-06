@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const GroupChat = require('../models/GroupChat');
 const User = require('../models/User');
 const Course = require('../models/Course');
@@ -170,7 +171,27 @@ router.get('/messages/:courseId/:sectionId', verifyToken, checkChatAccess, async
     // Format messages for frontend
     const formattedMessages = messages.reverse().map(message => {
       const sender = message.senderId;
-      let displayName = sender.name;
+      
+      // Handle case where sender is null (deleted user or population failed)
+      if (!sender) {
+        return {
+          _id: message._id,
+          text: message.text,
+          senderId: null,
+          senderName: 'Deleted User',
+          senderRole: 'unknown',
+          timestamp: message.timestamp,
+          isDeleted: message.isDeleted || false,
+          deletedBy: message.deletedBy,
+          deletedAt: message.deletedAt,
+          fileUrl: message.fileUrl,
+          fileName: message.fileName,
+          fileType: message.fileType,
+          replyTo: message.replyTo
+        };
+      }
+      
+      let displayName = sender.name || 'Unknown User';
       let displayId = '';
 
       // Format display name based on role
@@ -178,10 +199,10 @@ router.get('/messages/:courseId/:sectionId', verifyToken, checkChatAccess, async
         displayName = 'Admin';
         displayId = '';
       } else if (sender.roles && sender.roles.includes('dean')) {
-        displayName = `Dean ${sender.name}`;
+        displayName = `Dean ${sender.name || 'Unknown'}`;
         displayId = '';
       } else if (sender.roles && sender.roles.includes('hod')) {
-        displayName = `HOD ${sender.name}`;
+        displayName = `HOD ${sender.name || 'Unknown'}`;
         displayId = '';
       } else {
         if (sender.roles && sender.roles.includes('student') && sender.regNo) {
@@ -208,14 +229,14 @@ router.get('/messages/:courseId/:sectionId', verifyToken, checkChatAccess, async
         // Include reactions
         reactions: message.reactions || [],
         sender: {
-          _id: sender._id,
+          _id: sender._id || null,
           name: displayName,
           id: displayId,
-          roles: sender.roles
+          roles: sender.roles || []
         },
         canDelete: checkCanDelete(message, user),
         canShowDelete: checkCanShowDelete(user),
-        isOwner: message.senderId._id.toString() === user._id.toString()
+        isOwner: message.senderId && message.senderId._id ? message.senderId._id.toString() === user._id.toString() : false
       };
     });
 
@@ -247,7 +268,8 @@ function checkCanDelete(message, user) {
   
   // Users can delete their own messages within 5 minutes
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-  if (message.senderId._id.toString() === user._id.toString() && 
+  if (message.senderId && message.senderId._id && 
+      message.senderId._id.toString() === user._id.toString() && 
       new Date(message.timestamp) > fiveMinutesAgo) {
     return true;
   }
@@ -297,6 +319,8 @@ router.get('/rooms', verifyToken, async (req, res) => {
 
     let chatRooms = [];
     const userRoles = user.roles || [];
+    
+    console.log(`📋 Fetching chat rooms for user ${userId}, roles:`, userRoles);
 
     // Admin, Dean, HOD, Superadmin can see all chat rooms
     if (userRoles.includes('admin') || userRoles.includes('dean') || userRoles.includes('hod') || userRoles.includes('superadmin')) {
@@ -309,17 +333,19 @@ router.get('/rooms', verifyToken, async (req, res) => {
       for (const section of sections) {
         if (section.courses && section.courses.length > 0) {
           for (const course of section.courses) {
-            chatRooms.push({
-              courseId: course._id,
-              courseName: course.title,
-              courseCode: course.code,
-              sectionId: section._id,
-              sectionName: section.name,
-              schoolName: section.school?.name || 'Unknown School',
-              departmentName: section.department?.name || 'Unknown Department',
-              semester: section.semester,
-              year: section.year
-            });
+            if (course && course._id) {
+              chatRooms.push({
+                courseId: course._id,
+                courseName: course.title || 'Untitled Course',
+                courseCode: course.code || 'N/A',
+                sectionId: section._id,
+                sectionName: section.name || 'Unnamed Section',
+                schoolName: section.school?.name || 'Unknown School',
+                departmentName: section.department?.name || 'Unknown Department',
+                semester: section.semester || 'N/A',
+                year: section.year || 'N/A'
+              });
+            }
           }
         }
       }
@@ -335,17 +361,19 @@ router.get('/rooms', verifyToken, async (req, res) => {
       for (const section of sections) {
         if (section.courses && section.courses.length > 0) {
           for (const course of section.courses) {
-            chatRooms.push({
-              courseId: course._id,
-              courseName: course.title,
-              courseCode: course.code,
-              sectionId: section._id,
-              sectionName: section.name,
-              schoolName: section.school?.name || 'Unknown School',
-              departmentName: section.department?.name || 'Unknown Department',
-              semester: section.semester,
-              year: section.year
-            });
+            if (course && course._id) {
+              chatRooms.push({
+                courseId: course._id,
+                courseName: course.title || 'Untitled Course',
+                courseCode: course.code || 'N/A',
+                sectionId: section._id,
+                sectionName: section.name || 'Unnamed Section',
+                schoolName: section.school?.name || 'Unknown School',
+                departmentName: section.department?.name || 'Unknown Department',
+                semester: section.semester || 'N/A',
+                year: section.year || 'N/A'
+              });
+            }
           }
         }
       }
@@ -403,7 +431,7 @@ router.get('/rooms', verifyToken, async (req, res) => {
         for (const section of coordinatedSections) {
           if (section.courses && section.courses.length > 0) {
             for (const course of section.courses) {
-              if (coordinatedCourseIds.includes(course._id.toString())) {
+              if (course && course._id && coordinatedCourseIds.includes(course._id.toString())) {
                 // Check if already added
                 const exists = chatRooms.some(
                   room => room.courseId.toString() === course._id.toString() && 
@@ -413,14 +441,14 @@ router.get('/rooms', verifyToken, async (req, res) => {
                 if (!exists) {
                   chatRooms.push({
                     courseId: course._id,
-                    courseName: course.title,
-                    courseCode: course.code,
+                    courseName: course.title || 'Untitled Course',
+                    courseCode: course.code || 'N/A',
                     sectionId: section._id,
-                    sectionName: section.name,
+                    sectionName: section.name || 'Unnamed Section',
                     schoolName: section.school?.name || 'Unknown School',
                     departmentName: section.department?.name || 'Unknown Department',
-                    semester: section.semester,
-                    year: section.year,
+                    semester: section.semester || 'N/A',
+                    year: section.year || 'N/A',
                     isCoordinator: true
                   });
                 }
@@ -441,10 +469,21 @@ router.get('/rooms', verifyToken, async (req, res) => {
 
     // Sort by school, department, section, course
     uniqueRooms.sort((a, b) => {
-      if (a.schoolName !== b.schoolName) return a.schoolName.localeCompare(b.schoolName);
-      if (a.departmentName !== b.departmentName) return a.departmentName.localeCompare(b.departmentName);
-      if (a.sectionName !== b.sectionName) return a.sectionName.localeCompare(b.sectionName);
-      return a.courseCode.localeCompare(b.courseCode);
+      const aSchool = a.schoolName || '';
+      const bSchool = b.schoolName || '';
+      if (aSchool !== bSchool) return aSchool.localeCompare(bSchool);
+      
+      const aDept = a.departmentName || '';
+      const bDept = b.departmentName || '';
+      if (aDept !== bDept) return aDept.localeCompare(bDept);
+      
+      const aSection = a.sectionName || '';
+      const bSection = b.sectionName || '';
+      if (aSection !== bSection) return aSection.localeCompare(bSection);
+      
+      const aCourse = a.courseCode || '';
+      const bCourse = b.courseCode || '';
+      return aCourse.localeCompare(bCourse);
     });
 
     res.json({
@@ -735,6 +774,20 @@ router.post('/mark-read', verifyToken, async (req, res) => {
 
     if (!courseId || !sectionId) {
       return res.status(400).json({ message: 'courseId and sectionId are required' });
+    }
+
+    // Validate lastReadMessageId if provided - skip temporary/invalid IDs
+    if (lastReadMessageId && 
+        (typeof lastReadMessageId === 'string') && 
+        (lastReadMessageId.startsWith('temp_') || 
+         lastReadMessageId.startsWith('demo-msg-') ||
+         !mongoose.Types.ObjectId.isValid(lastReadMessageId))) {
+      // Don't update for temporary/invalid IDs - just return success
+      return res.json({
+        success: true,
+        message: 'Skipped read receipt update for temporary message ID',
+        receipt: null
+      });
     }
 
     // Update or create read receipt

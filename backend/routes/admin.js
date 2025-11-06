@@ -58,6 +58,10 @@ router.put('/audit-logs/:id/review', adminController.markAsReviewed);
 router.get('/audit-logs/export', adminController.exportAuditLogs);
 router.get('/audit-logs/user/:userId', adminController.getUserActivityHistory);
 
+// Session-based activity tracking
+router.get('/sessions', adminController.getUserSessions);
+router.get('/sessions/:sessionId/activities', adminController.getSessionActivities);
+
 // Bulk messaging (email or notification)
 router.post('/bulk-message', authorizeRoles('admin'), adminController.bulkMessage);
 // Student & Teacher analytics
