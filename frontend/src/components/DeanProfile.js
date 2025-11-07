@@ -256,7 +256,7 @@ const DeanProfile = () => {
                   {profile?.managedSections && (
                     <ListItem>
                       <ListItemIcon>
-                        <Groups color="primary" />
+                        <GroupsIcon color="primary" />
                       </ListItemIcon>
                       <ListItemText 
                         primary="Supervised Sections" 
@@ -264,10 +264,10 @@ const DeanProfile = () => {
                       />
                     </ListItem>
                   )}
-                  {profile?.teachingCourses && (
+                  {profile?.managedCourses && (
                     <ListItem>
                       <ListItemIcon>
-                        <MenuBook color="primary" />
+                        <CourseIcon color="primary" />
                       </ListItemIcon>
                       <ListItemText 
                         primary="Teaching Courses" 

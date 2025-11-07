@@ -41,7 +41,8 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   MoreVert as MoreVertIcon,
   Emoji as EmojiIcon,
-  AttachFile as AttachFileIcon
+  AttachFile as AttachFileIcon,
+  Chat as ChatIcon
 } from '@mui/icons-material';
 import { io } from 'socket.io-client';
 import axios from 'axios';
@@ -71,6 +72,8 @@ const GroupChatPage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [messageInput, setMessageInput] = useState('');
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const maxReconnectAttempts = 5;
   
   // Refs
   const messagesEndRef = useRef(null);

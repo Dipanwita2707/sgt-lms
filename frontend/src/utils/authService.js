@@ -1,3 +1,20 @@
+// Authentication service for handling login/logout and token management
+import axios from 'axios';
+
+// Helper function to parse JWT token
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
 // Restore user from token if missing in localStorage
 export const restoreUserFromToken = () => {
   const token = getToken();
@@ -62,22 +79,6 @@ export const restoreUserFromToken = () => {
     return null;
   } catch (error) {
     console.error('Error restoring user from token:', error);
-    return null;
-  }
-};
-// Authentication service for handling login/logout and token management
-import axios from 'axios';
-
-// Helper function to parse JWT token
-const parseJwt = (token) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  } catch (e) {
     return null;
   }
 };

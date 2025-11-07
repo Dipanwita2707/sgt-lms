@@ -251,7 +251,7 @@ const AdminProfile = () => {
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
-                      <Groups color="primary" />
+                      <GroupsIcon color="primary" />
                     </ListItemIcon>
                     <ListItemText 
                       primary="User Management" 
@@ -260,7 +260,7 @@ const AdminProfile = () => {
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
-                      <MenuBook color="primary" />
+                      <CourseIcon color="primary" />
                     </ListItemIcon>
                     <ListItemText 
                       primary="Content Management" 

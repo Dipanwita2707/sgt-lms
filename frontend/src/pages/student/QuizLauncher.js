@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, CircularProgress, Alert, Button } from '@mui/material';
+import { Box, CircularProgress, Alert, Button, Typography } from '@mui/material';
 import axios from 'axios';
 import QuizSecurityBriefing from '../../components/student/QuizSecurityBriefing';
 import SecureQuizPage from './SecureQuizPage';

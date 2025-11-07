@@ -374,7 +374,7 @@ const AnnouncementBoard = ({ role, token, teacherCourses, userId }) => {
         <Box sx={{ mb: 4 }}>
           {/* Teacher gets specialized section-based announcement component */}
           {role === 'teacher' ? (
-            <TeacherAnnouncementComponent user={{ name, userId, role }} />
+            <TeacherAnnouncementComponent user={{ userId, role }} />
           ) : (
             /* Admin announcement form */
             <Paper 

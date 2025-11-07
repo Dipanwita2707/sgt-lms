@@ -255,18 +255,18 @@ const HODProfile = () => {
                   {profile?.managedSections && (
                     <ListItem>
                       <ListItemIcon>
-                        <Groups color="primary" />
+                        <GroupsIcon color="primary" />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="Managed Sections" 
+                        primary="Supervised Sections" 
                         secondary={`${profile.managedSections.length || 0} section(s)`} 
                       />
                     </ListItem>
                   )}
-                  {profile?.teachingCourses && (
+                  {profile?.managedCourses && (
                     <ListItem>
                       <ListItemIcon>
-                        <MenuBook color="primary" />
+                        <CourseIcon color="primary" />
                       </ListItemIcon>
                       <ListItemText 
                         primary="Teaching Courses" 

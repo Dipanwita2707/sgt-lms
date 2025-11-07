@@ -695,6 +695,49 @@ const SecureQuizPage = ({ user, token }) => {
     };
   }, [timeLeft, submitted, isQuizLocked, autoSubmitQuiz]);
 
+  // Forced fullscreen effect that runs on each render
+  useEffect(() => {
+    if (quiz && !submitted && !isQuizLocked) {
+      console.log('Forced fullscreen effect running');
+      const fullscreenButton = document.createElement('button');
+      fullscreenButton.id = 'forced-fullscreen-button';
+      fullscreenButton.innerText = 'ENTER FULLSCREEN MODE TO CONTINUE';
+      fullscreenButton.style.position = 'fixed';
+      fullscreenButton.style.top = '50%';
+      fullscreenButton.style.left = '50%';
+      fullscreenButton.style.transform = 'translate(-50%, -50%)';
+      fullscreenButton.style.zIndex = '9999';
+      fullscreenButton.style.padding = '20px';
+      fullscreenButton.style.fontSize = '24px';
+      fullscreenButton.style.backgroundColor = '#f44336';
+      fullscreenButton.style.color = 'white';
+      fullscreenButton.style.border = 'none';
+      fullscreenButton.style.borderRadius = '5px';
+      fullscreenButton.style.cursor = 'pointer';
+      
+      fullscreenButton.onclick = () => {
+        enterFullscreen();
+        
+        if (document.body.contains(fullscreenButton)) {
+          document.body.removeChild(fullscreenButton);
+        }
+      };
+      
+      // Only add the button if it doesn't exist and we're not in fullscreen
+      if (!document.getElementById('forced-fullscreen-button') && !isFullscreen) {
+        document.body.appendChild(fullscreenButton);
+      }
+    }
+
+    return () => {
+      // Cleanup forced fullscreen button when component unmounts or conditions change
+      const existingButton = document.getElementById('forced-fullscreen-button');
+      if (existingButton && document.body.contains(existingButton)) {
+        document.body.removeChild(existingButton);
+      }
+    };
+  }, [quiz, submitted, isQuizLocked, isFullscreen]);
+
   const handleAnswerChange = (questionId, selectedOption) => {
     if (isTabSwitchBlocked || isQuizLocked) return;
     
@@ -931,55 +974,6 @@ const SecureQuizPage = ({ user, token }) => {
 
   const currentQ = quiz.questions[currentQuestion];
   const statusCounts = getStatusCounts();
-  
-  // Forced fullscreen effect that runs on each render
-  useEffect(() => {
-    if (quiz && !submitted && !isQuizLocked) {
-      console.log('Forced fullscreen effect running');
-      const fullscreenButton = document.createElement('button');
-      fullscreenButton.id = 'forced-fullscreen-button';
-      fullscreenButton.innerText = 'ENTER FULLSCREEN MODE TO CONTINUE';
-      fullscreenButton.style.position = 'fixed';
-      fullscreenButton.style.top = '50%';
-      fullscreenButton.style.left = '50%';
-      fullscreenButton.style.transform = 'translate(-50%, -50%)';
-      fullscreenButton.style.zIndex = '9999';
-      fullscreenButton.style.padding = '20px';
-      fullscreenButton.style.fontSize = '24px';
-      fullscreenButton.style.backgroundColor = '#f44336';
-      fullscreenButton.style.color = 'white';
-      fullscreenButton.style.border = 'none';
-      fullscreenButton.style.borderRadius = '5px';
-      fullscreenButton.style.cursor = 'pointer';
-      
-      fullscreenButton.onclick = () => {
-        enterFullscreen();
-        
-        if (document.body.contains(fullscreenButton)) {
-          document.body.removeChild(fullscreenButton);
-        }
-      };
-      
-      // Only add the button if it doesn't exist and we're not in fullscreen
-      if (!document.getElementById('forced-fullscreen-button') && !isFullscreen) {
-        document.body.appendChild(fullscreenButton);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-          if (document.body.contains(fullscreenButton)) {
-            document.body.removeChild(fullscreenButton);
-          }
-        }, 5000);
-      }
-    }
-    
-    return () => {
-      const fullscreenButton = document.getElementById('forced-fullscreen-button');
-      if (fullscreenButton) {
-        fullscreenButton.remove();
-      }
-    };
-  }, [quiz, submitted, isQuizLocked, isFullscreen, enterFullscreen]);
   
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>

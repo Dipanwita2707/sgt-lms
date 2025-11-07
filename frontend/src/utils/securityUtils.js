@@ -531,7 +531,7 @@ export const validateBrowserEnvironment = () => {
     });
 
     // Check screen resolution (very small resolutions might indicate automation)
-    if (screen.width < 800 || screen.height < 600) {
+    if (window.screen.width < 800 || window.screen.height < 600) {
       issues.push('Unusually small screen resolution detected');
       recommendations.push('Use a standard screen resolution');
     }
