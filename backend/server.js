@@ -11,13 +11,18 @@ require('dotenv').config();
 const corsOptions = {
   origin: [
     'http://localhost:3000',
+    'https://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://127.0.0.1:3000',
     process.env.FRONTEND_URL,
-    'http://127.0.0.1:3000'
-  ],
+    'https://ec2-13-233-135-233.ap-south-1.compute.amazonaws.com',
+    'https://13.233.135.233',
+    'http://13.233.135.233'
+  ].filter(Boolean), // Remove undefined values
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 };
 
 app.use(cors(corsOptions));
