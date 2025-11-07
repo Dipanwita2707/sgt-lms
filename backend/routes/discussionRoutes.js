@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const discussionController = require('../controllers/discussionController');
 const { authenticateToken, isAdmin, isTeacher, isStudent } = require('../middleware/authMiddleware');
-const upload = require('../middleware/fileUploadMiddleware');
+const S3Service = require('../services/s3Service');
 
-// Setup file upload middleware for discussion images
-const discussionUpload = upload('discussions');
+// Initialize S3 service
+const s3Service = new S3Service();
+
+// Setup S3 file upload middleware for discussion images
+const discussionUpload = s3Service.createDiscussionUploadMiddleware('discussions');
 
 // Get all discussions (admin only)
 router.get('/all', authenticateToken, discussionController.getAllDiscussions);

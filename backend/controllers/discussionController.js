@@ -128,9 +128,9 @@ exports.createDiscussion = async (req, res) => {
     const { courseId, title, content } = req.body;
     let imageUrl = null;
 
-    // Handle image upload if present
+    // Handle image upload if present (now using S3)
     if (req.file) {
-      imageUrl = `/uploads/discussions/${req.file.filename}`;
+      imageUrl = req.file.location; // S3 URL
     }
 
     // Verify course exists
@@ -331,9 +331,9 @@ exports.addReply = async (req, res) => {
     const { content, isAnswer } = req.body;
     let imageUrl = null;
 
-    // Handle image upload if present
+    // Handle image upload if present (now using S3)
     if (req.file) {
-      imageUrl = `/uploads/discussions/${req.file.filename}`;
+      imageUrl = req.file.location; // S3 URL
     }
 
     const discussion = await Discussion.findById(discussionId)

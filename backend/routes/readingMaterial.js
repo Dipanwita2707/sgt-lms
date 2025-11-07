@@ -2,7 +2,13 @@ const express = require('express');
 const router = express.Router();
 const readingMaterialController = require('../controllers/readingMaterialController');
 const { auth, authorizeRoles } = require('../middleware/auth');
-const upload = require('../middleware/upload')('documents');
+const S3Service = require('../services/s3Service');
+
+// Initialize S3 service
+const s3Service = new S3Service();
+
+// Use S3 upload middleware for reading materials
+const upload = s3Service.createMaterialUploadMiddleware('materials');
 
 // Teacher routes
 router.post('/', 

@@ -3,9 +3,21 @@ const router = express.Router();
 const quizController = require('../controllers/quizController');
 const quizPoolController = require('../controllers/quizPoolController');
 const { auth, authorizeRoles } = require('../middleware/auth');
-const uploadMiddleware = require('../middleware/upload');
-const upload = uploadMiddleware('quizzes'); // Create a quizzes folder for uploads
+const S3Service = require('../services/s3Service');
 const { logDetailedOperation } = require('../middleware/detailedAuditMiddleware');
+
+// Initialize S3 service
+const s3Service = new S3Service();
+
+// Create CSV upload middleware for quizzes
+const upload = s3Service.createUploadMiddleware('quizzes', (req, file, cb) => {
+  // Only allow CSV files for quizzes
+  if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only CSV files are allowed for quizzes'), false);
+  }
+});
 
 // Quiz template
 router.get('/template', auth, authorizeRoles('teacher', 'admin'), quizController.createQuizTemplate);

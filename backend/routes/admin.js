@@ -4,33 +4,13 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const S3Service = require('../services/s3Service');
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Initialize S3 service
+const s3Service = new S3Service();
 
-// Configure multer for large video uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'admin-' + uniqueSuffix + ext);
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: Infinity  // Allow unlimited file size for video uploads
-  }
-});
-
-const { auth, authorizeRoles, switchRole } = require('../middleware/auth');
+// Use S3 upload middleware for admin uploads (videos and other files)
+const upload = s3Service.createUploadMiddleware('admin-uploads');const { auth, authorizeRoles, switchRole } = require('../middleware/auth');
 const adminController = require('../controllers/adminController');
 const videoController = require('../controllers/videoController');
 const analyticsController = require('../controllers/analyticsController');

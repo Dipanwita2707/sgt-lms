@@ -27,8 +27,8 @@ exports.uploadSignature = async (req, res) => {
       return res.status(400).json({ message: 'No signature file uploaded' });
     }
 
-    // Update user's signature URL based on type
-    const signatureUrl = `/uploads/signatures/${req.file.filename}`;
+    // Update user's signature URL based on type (now using S3)
+    const signatureUrl = req.file.location; // S3 URL
     const updateField = signatureType === 'registrar' ? 'registrarSignatureUrl' : 'signatureUrl';
     
     console.log('[uploadSignature] Update Field:', updateField);

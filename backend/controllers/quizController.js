@@ -9,6 +9,7 @@ const Unit = require('../models/Unit');
 const Section = require('../models/Section');
 const fs = require('fs');
 const csv = require('csv-parser');
+const S3CsvHandler = require('../utils/s3CsvHandler');
 const path = require('path');
 const { checkUnitDeadline, checkActivityDeadlineCompliance } = require('../utils/deadlineUtils');
 const AuditLog = require('../models/AuditLog');
@@ -127,52 +128,47 @@ exports.uploadQuiz = async (req, res) => {
       }
     }
     
-    // Parse CSV file
-    const questions = [];
-    let rowCount = 0;
-    
-    await new Promise((resolve, reject) => {
-      fs.createReadStream(req.file.path)
-        .pipe(csv())
-        .on('data', (row) => {
-          // Skip empty rows and example rows
-          if (!row.questionText || row.questionText.includes('Add your questions')) {
-            return;
-          }
-          
-          rowCount++;
-          
-          // Validate row data
-          const options = [row.option1, row.option2, row.option3, row.option4];
-          const correctOption = parseInt(row.correctOption) - 1; // Convert to 0-based index
-          const points = parseInt(row.points) || 1;
-          
-          // Validate options
-          if (options.some(opt => !opt || opt.trim() === '')) {
-            reject(new Error(`Row ${rowCount}: All four options must be provided`));
-            return;
-          }
-          
-          // Validate correct option
-          if (isNaN(correctOption) || correctOption < 0 || correctOption > 3) {
-            reject(new Error(`Row ${rowCount}: Correct option must be a number between 1 and 4`));
-            return;
-          }
-          
-          questions.push({
-            questionText: row.questionText,
-            options,
-            correctOption,
-            points
-          });
-        })
-        .on('end', () => {
-          resolve();
-        })
-        .on('error', (err) => {
-          reject(err);
-        });
+    // Parse CSV file from S3
+    const s3CsvHandler = new S3CsvHandler();
+    const csvResult = await s3CsvHandler.processCsvFromMulterS3(req.file, (row, rowCount) => {
+      // Skip empty rows and example rows
+      if (!row.questionText || row.questionText.includes('Add your questions')) {
+        return null;
+      }
+      
+      // Validate row data
+      const options = [row.option1, row.option2, row.option3, row.option4];
+      const correctOption = parseInt(row.correctOption) - 1; // Convert to 0-based index
+      const points = parseInt(row.points) || 1;
+      
+      // Validate options
+      if (options.some(opt => !opt || opt.trim() === '')) {
+        throw new Error(`All four options must be provided`);
+      }
+      
+      // Validate correct option
+      if (isNaN(correctOption) || correctOption < 0 || correctOption > 3) {
+        throw new Error(`Correct option must be a number between 1 and 4`);
+      }
+      
+      return {
+        questionText: row.questionText,
+        options,
+        correctOption,
+        points
+      };
     });
+
+    if (csvResult.errors.length > 0) {
+      // Clean up S3 file
+      await s3CsvHandler.cleanupS3File(req.file.bucket, req.file.key);
+      return res.status(400).json({ 
+        message: 'CSV validation errors', 
+        errors: csvResult.errors.map(err => `Row ${err.row}: ${err.error}`)
+      });
+    }
+
+    const questions = csvResult.results;
     
     // Validate minimum number of questions
     if (questions.length < 3) {
@@ -251,8 +247,8 @@ exports.uploadQuiz = async (req, res) => {
       }
     });
     
-    // Clean up - remove the uploaded file
-    fs.unlinkSync(req.file.path);
+    // Clean up S3 file
+    await s3CsvHandler.cleanupS3File(req.file.bucket, req.file.key);
     
     res.status(201).json({
       message: 'Quiz created successfully; sent for CC review',
@@ -267,8 +263,13 @@ exports.uploadQuiz = async (req, res) => {
     
   } catch (error) {
     console.error('Error uploading quiz:', error);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    // Clean up S3 file on error
+    if (req.file && req.file.bucket && req.file.key) {
+      try {
+        await s3CsvHandler.cleanupS3File(req.file.bucket, req.file.key);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup S3 file:', cleanupError.message);
+      }
     }
     res.status(400).json({ message: error.message });
   }

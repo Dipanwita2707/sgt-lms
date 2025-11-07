@@ -621,7 +621,7 @@ exports.uploadCourseVideo = async (req, res) => {
       description,
       course: courseId,
       teacher: req.user._id,
-      videoUrl: `/uploads/${req.file.filename}`,
+      videoUrl: req.file.location || req.file.path, // S3 URL or fallback
       duration: duration
     });
     

@@ -1,27 +1,92 @@
-name: 🚀 Auto Deploy to Server
+name: 🚀 Deploy SGT-LMS to EC2
 
 on:
   push:
-    branches: ["main"]
+    branches: ["production-main"]
+  pull_request:
+    branches: ["production-main"]
+
+env:
+  EC2_HOST: ec2-13-233-135-233.ap-south-1.compute.amazonaws.com
+  EC2_USER: ubuntu
+  DEPLOY_PATH: /var/www/sgt-lms
 
 jobs:
   deploy:
+    name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd /var/www/sgt-student-server
-            git pull origin main
-            cd backend && npm install && pm2 restart sgt-backend
-            cd ../frontend && npm install && npm run build && pm2 restart frontend
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          frontend/package-lock.json
+          backend/package-lock.json
+    
+    - name: 📦 Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: 🏗️ Build Frontend
+      run: |
+        cd frontend
+        GENERATE_SOURCEMAP=false npm run build
+        
+    - name: 📦 Install Backend Dependencies
+      run: |
+        cd backend
+        npm ci --only=production
+        
+    - name: 🚀 Deploy via SSH
+      uses: appleboy/ssh-action@v1.1.0
+      with:
+        host: ${{ env.EC2_HOST }}
+        username: ${{ env.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # Navigate to app directory
+          cd ${{ env.DEPLOY_PATH }}
+          
+          # Backup current deployment
+          sudo cp -r . /tmp/backup-$(date +%s) || true
+          
+          # Pull latest changes
+          git pull origin production-main
+          
+          # Update backend dependencies
+          cd backend
+          npm install --only=production
+          
+          # Build frontend
+          cd ../frontend
+          npm install
+          GENERATE_SOURCEMAP=false npm run build
+          
+          # Fix permissions
+          sudo chown -R www-data:www-data build/
+          sudo chmod -R 755 build/
+          
+          # Restart services
+          cd ../backend
+          pm2 restart sgt-lms-backend || (NODE_ENV=development pm2 start server.js --name sgt-lms-backend)
+          pm2 save
+          
+          # Reload nginx
+          sudo systemctl reload nginx
+          
+          echo "✅ Deployment completed successfully!"
+          
+    - name: 🧪 Health Check
+      run: |
+        sleep 10
+        curl -f -k https://${{ env.EC2_HOST }} > /dev/null || exit 1
+        echo "✅ Health check passed!"
 
 

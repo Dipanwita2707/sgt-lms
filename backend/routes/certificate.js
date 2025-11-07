@@ -4,33 +4,13 @@ const multer = require('multer');
 const path = require('path');
 const certificateController = require('../controllers/certificateController');
 const { auth, authorizeRoles } = require('../middleware/auth');
+const S3Service = require('../services/s3Service');
 
-// Configure multer for signature uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/signatures/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'signature-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Initialize S3 service
+const s3Service = new S3Service();
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
-    }
-  }
-});
+// Use S3 upload middleware for signature uploads
+const upload = s3Service.createSignatureUploadMiddleware('signatures');
 
 // HOD Routes
 router.post('/signature/upload', 

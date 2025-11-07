@@ -23,24 +23,10 @@ exports.createReadingMaterial = async (req, res) => {
       return res.status(404).json({ message: 'Unit not found' });
     }
 
-    // Handle file upload if PDF
+    // Handle file upload if PDF (now using S3)
     if (contentType === 'pdf' && req.file) {
-      const { v4: uuidv4 } = await import('uuid');
-      const uploadDir = path.join(__dirname, '..', 'uploads', 'materials');
-      
-      // Create directory if it doesn't exist
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      
-      const filename = `${uuidv4()}-${req.file.originalname}`;
-      const filePath = path.join(uploadDir, filename);
-      
-      // Write file to disk
-      fs.writeFileSync(filePath, req.file.buffer);
-      
-      // Set fileUrl
-      fileUrl = `/uploads/materials/${filename}`;
+      // For S3 uploads, the file URL is in req.file.location
+      fileUrl = req.file.location;
     }
 
     // Create reading material
@@ -92,36 +78,27 @@ exports.updateReadingMaterial = async (req, res) => {
     const { title, description, contentType, content, order } = req.body;
     let fileUrl = undefined;
 
-    // Handle file upload if PDF
-    if (contentType === 'pdf' && req.file) {
-      const { v4: uuidv4 } = await import('uuid');
-      const uploadDir = path.join(__dirname, '..', 'uploads', 'materials');
-      
-      // Create directory if it doesn't exist
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      
-      const filename = `${uuidv4()}-${req.file.originalname}`;
-      const filePath = path.join(uploadDir, filename);
-      
-      // Write file to disk
-      fs.writeFileSync(filePath, req.file.buffer);
-      
-      // Set fileUrl
-      fileUrl = `/uploads/materials/${filename}`;
-      
-      // Delete old file if it exists
-      const oldMaterial = await ReadingMaterial.findById(materialId);
-      if (oldMaterial && oldMaterial.fileUrl) {
-        const oldFilePath = path.join(__dirname, '..', oldMaterial.fileUrl.replace(/^\//, ''));
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
+  // Handle file upload for updates (now using S3)
+  if (contentType === 'pdf' && req.file) {
+    // For S3 uploads, the file URL is in req.file.location
+    fileUrl = req.file.location;
+    
+    // Delete old file from S3 if it exists
+    const oldMaterial = await ReadingMaterial.findById(materialId);
+    if (oldMaterial && oldMaterial.fileUrl) {
+      try {
+        const S3Utils = require('../utils/s3Utils');
+        const s3Utils = new S3Utils();
+        const s3Key = s3Utils.extractS3Key(oldMaterial.fileUrl);
+        if (s3Key) {
+          await s3Utils.s3Service.deleteFile(s3Key);
         }
+      } catch (deleteError) {
+        console.error('Error deleting old S3 file:', deleteError);
+        // Continue with update even if delete fails
       }
     }
-
-    // Update fields
+  }    // Update fields
     const updateData = {
       title,
       description,

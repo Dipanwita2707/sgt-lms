@@ -63,24 +63,13 @@ exports.uploadVideo = async (req, res) => {
       teacherId = course.teachers[0];
     }
     
-    // Store only the relative path (not the full system path)
-    // Convert Windows path separators to forward slashes
-    const fullPath = req.file.path.replace(/\\/g, '/');
+    // For S3 uploads, use the S3 URL directly
+    const videoUrl = req.file.location || req.file.path; // S3 location or fallback to local path
     
-    // Extract just the filename from uploads directory
-    const videoUrl = 'uploads/' + req.file.filename;
-    
-    // Try to get video duration using ffprobe first (use full path for ffprobe)
+    // For S3 uploads, we'll need to handle duration differently
+    // Since we can't run ffprobe on S3 files directly, rely on frontend duration
     let duration = null;
-    try {
-      duration = await getVideoDuration(fullPath);
-    } catch (err) {
-      console.error('Error getting video duration:', err);
-      // Continue without duration
-    }
-    
-    // If ffprobe failed but frontend provided duration, use that
-    if (!duration && req.body.duration) {
+    if (req.body.duration) {
       duration = parseInt(req.body.duration, 10);
       console.log('Using duration from frontend:', duration, 'seconds');
     }

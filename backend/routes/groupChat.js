@@ -10,55 +10,15 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const S3Service = require('../services/s3Service');
+const S3Utils = require('../utils/s3Utils');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads/chat-files');
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename: timestamp-random-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  }
-});
+// Initialize S3 service
+const s3Service = new S3Service();
+const s3Utils = new S3Utils();
 
-// File filter for validation
-const fileFilter = (req, file, cb) => {
-  const allowedImages = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-  const allowedDocs = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'text/plain',
-    'text/csv'
-  ];
-
-  if (allowedImages.includes(file.mimetype) || allowedDocs.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only images and documents are allowed.'), false);
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
-});
-
-// Middleware to verify JWT token
+// Use S3 upload middleware for chat files
+const upload = s3Service.createChatFileUploadMiddleware('chat-files');// Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   
@@ -515,10 +475,6 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
     const canUpload = userRoles.some(role => ['teacher', 'hod', 'dean', 'admin'].includes(role));
 
     if (!canUpload) {
-      // Delete the uploaded file
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
       return res.status(403).json({ 
         success: false, 
         message: 'Only teachers, HODs, and deans can upload files' 
@@ -530,9 +486,6 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
     const course = await Course.findById(courseId).populate('coordinators');
     
     if (!section || !course) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
       return res.status(404).json({ success: false, message: 'Course or section not found' });
     }
 
@@ -553,51 +506,42 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
     }
 
     if (!hasAccess) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
       return res.status(403).json({ success: false, message: 'Access denied to this chat room' });
     }
 
-    // File uploaded successfully
+    // File uploaded successfully to S3
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    // Generate file URL (relative path for serving)
-    const fileUrl = `/uploads/chat-files/${req.file.filename}`;
+    // File is now in S3, get the details
+    const fileUrl = req.file.location; // S3 URL
     const fileName = req.file.originalname;
     const fileSize = req.file.size;
     const mimeType = req.file.mimetype;
+    const s3Key = req.file.key;
 
-    console.log(`📎 [CHAT-UPLOAD] File uploaded by ${user.name} (${userRoles.join(', ')}): ${fileName} (${(fileSize / 1024).toFixed(2)} KB)`);
+    console.log(`📎 [CHAT-UPLOAD] File uploaded to S3 by ${user.name} (${userRoles.join(', ')}): ${fileName} (${(fileSize / 1024).toFixed(2)} KB)`);
+    console.log(`📍 [S3] File URL: ${fileUrl}`);
 
     res.json({
       success: true,
-      message: 'File uploaded successfully',
+      message: 'File uploaded successfully to S3',
       fileUrl,
       fileName,
       fileSize,
-      mimeType
+      mimeType,
+      s3Key
     });
 
   } catch (error) {
     console.error('❌ [CHAT-UPLOAD] Error:', error);
     
-    // Clean up uploaded file on error
-    if (req.file) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.error('Error deleting file:', unlinkError);
-      }
-    }
-
     if (error instanceof multer.MulterError) {
       if (error.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ 
           success: false, 
-          message: 'File too large. Maximum size is 10MB.' 
+          message: 'File too large. Maximum size is 100MB.' 
         });
       }
       return res.status(400).json({ 
