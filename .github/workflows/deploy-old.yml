@@ -1,0 +1,141 @@
+name: 🚀 Deploy SGT-LMS to EC2
+
+on:
+  push:
+    branches: ["production-main"]
+  pull_request:
+    branches: ["production-main"]
+
+env:
+  EC2_HOST: ec2-13-233-135-233.ap-south-1.compute.amazonaws.com
+  EC2_USER: ubuntu
+  DEPLOY_PATH: /var/www/sgt-lms
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          frontend/package-lock.json
+          backend/package-lock.json
+    
+    - name: 📦 Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: 🏗️ Build Frontend
+      run: |
+        cd frontend
+        GENERATE_SOURCEMAP=false CI=false npm run build
+        
+    - name: 📦 Install Backend Dependencies
+      run: |
+        cd backend
+        npm ci --only=production
+        
+    - name: � Create Deployment Package
+      run: |
+        # Create deployment package
+        mkdir -p deployment-package
+        
+        # Copy built frontend
+        cp -r frontend/build deployment-package/frontend-build
+        
+        # Copy backend files (excluding node_modules)
+        rsync -av --exclude='node_modules' --exclude='.git' backend/ deployment-package/backend/
+        
+        # Copy package.json files
+        cp backend/package*.json deployment-package/backend/
+        
+        # Create deployment script
+        cat > deployment-package/deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        echo "🚀 Starting deployment..."
+        
+        # Navigate to app directory
+        cd /var/www/sgt-lms
+        
+        # Backup current deployment
+        sudo cp -r . /tmp/backup-$(date +%s) || true
+        
+        # Pull latest changes
+        git pull origin production-main
+        
+        # Update backend dependencies
+        cd backend
+        rm -rf node_modules package-lock.json
+        npm install --only=production
+        
+        # Build frontend
+        cd ../frontend
+        rm -rf node_modules package-lock.json
+        npm install
+        GENERATE_SOURCEMAP=false npm run build
+        
+        # Fix permissions
+        sudo chown -R www-data:www-data build/
+        sudo chmod -R 755 build/
+        
+        # Restart services
+        cd ../backend
+        pm2 delete sgt-lms-backend || true
+        NODE_ENV=production pm2 start server.js --name sgt-lms-backend
+        pm2 save
+        
+        # Reload nginx
+        sudo systemctl reload nginx
+        
+        echo "✅ Deployment completed successfully!"
+        EOF
+        
+        chmod +x deployment-package/deploy.sh
+        
+    - name: 📄 Display Manual Deployment Instructions
+      run: |
+        echo "🎉 Build completed successfully!"
+        echo ""
+        echo "📋 Manual Deployment Instructions:"
+        echo "=================================="
+        echo ""
+        echo "1. SSH to your EC2 instance:"
+        echo "   ssh -i sgt-lmskey.pem ubuntu@ec2-13-233-135-233.ap-south-1.compute.amazonaws.com"
+        echo ""
+        echo "2. Run the deployment commands:"
+        echo "   cd /var/www/sgt-lms"
+        echo "   git pull origin production-main"
+        echo "   cd backend"
+        echo "   rm -rf node_modules package-lock.json"
+        echo "   npm install --only=production"
+        echo "   cd ../frontend"
+        echo "   rm -rf node_modules package-lock.json"
+        echo "   npm install"
+        echo "   GENERATE_SOURCEMAP=false npm run build"
+        echo "   sudo chown -R www-data:www-data build/"
+        echo "   sudo chmod -R 755 build/"
+        echo "   cd ../backend"
+        echo "   pm2 delete sgt-lms-backend || true"
+        echo "   NODE_ENV=production pm2 start server.js --name sgt-lms-backend"
+        echo "   pm2 save"
+        echo "   sudo systemctl reload nginx"
+        echo ""
+        echo "3. Verify deployment:"
+        echo "   pm2 status"
+        echo "   curl -k https://13.233.135.233"
+        echo ""
+        echo "✅ Your code is ready for deployment!"
+
+
+
