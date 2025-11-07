@@ -4,6 +4,13 @@
   ],
   "rules": {
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "off"
+    "react-hooks/exhaustive-deps": "off",
+    "no-unused-vars": "warn",
+    "import/no-anonymous-default-export": "warn",
+    "no-use-before-define": "warn",
+    "no-mixed-operators": "warn",
+    "no-dupe-keys": "error",
+    "react/jsx-no-undef": "error",
+    "no-restricted-globals": "warn"
   }
 }

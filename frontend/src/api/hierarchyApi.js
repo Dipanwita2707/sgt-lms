@@ -246,7 +246,7 @@ export const getMyTeachingAssignments = async () => {
   }
 };
 
-export default {
+const hierarchyApi = {
   assignDeanToSchool,
   removeDeanFromSchool,
   assignHODToDepartment,
@@ -270,3 +270,5 @@ export default {
   getUserAssignments,
   getMyTeachingAssignments,
 };
+
+export default hierarchyApi;
