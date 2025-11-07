@@ -1851,7 +1851,6 @@ const StudentQuizPage = ({ user: userProp, token: tokenProp }) => {
                     sx={{ 
                       border: `2px solid`,
                       borderColor: `${securityStatus.color}.main`,
-                      bgcolor: `${securityStatus.color}.light`,
                       bgcolor: securityStatus.status === 'critical' ? 'error.light' : 
                                securityStatus.status === 'warning' ? 'warning.light' :
                                securityStatus.status === 'caution' ? 'info.light' : 'success.light',

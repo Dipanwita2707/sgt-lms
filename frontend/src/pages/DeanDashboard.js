@@ -509,7 +509,6 @@ const DeanDashboard = () => {
           ml: 0,
           width: isOnLiveClass ? '100vw' : `calc(100% - ${sidebarCollapsed ? 80 : 280}px)`,
           transition: 'width 0.3s',
-          width: isOnLiveClass ? '100vw' : 'auto',
           position: isOnLiveClass ? 'fixed' : 'relative',
           top: isOnLiveClass ? 0 : 'auto',
           left: isOnLiveClass ? 0 : 'auto',
